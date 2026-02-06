@@ -15,6 +15,20 @@ export function clearCompanyAuthStorage() {
   localStorage.removeItem("companyTokenExpiresAt");
 }
 
+/** 기업 API 베이스 URL 가져오기 (프로덕션에서는 절대 URL, 개발에서는 프록시 사용) */
+export function getCompanyApiBaseUrl() {
+  // 환경 변수가 설정되어 있으면 사용
+  if (import.meta.env.VITE_COMPANY_API_BASE_URL) {
+    return import.meta.env.VITE_COMPANY_API_BASE_URL;
+  }
+  // 개발 환경에서는 프록시 사용 (빈 문자열 = 상대 경로)
+  if (import.meta.env.DEV) {
+    return '';
+  }
+  // 프로덕션에서는 절대 URL 사용
+  return 'http://34.64.188.189:4000';
+}
+
 /** JWT accessToken payload에서 sub(userId) 추출 */
 export function getUserIdFromToken(accessToken) {
   if (!accessToken || typeof accessToken !== "string") return null;

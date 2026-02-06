@@ -61,9 +61,11 @@ function Header() {
 
   const handleLogout = async () => {
     try {
+      // 일반 사용자 로그아웃만 API 호출 (기업 로그인은 CompanyHeader에서 처리)
       await logout();
-    } catch (_) {
-      // 401 등 실패해도 로컬만 정리 후 로그인으로
+    } catch (error) {
+      // 500 에러 등 실패해도 로컬만 정리 후 로그인으로
+      console.error('로그아웃 API 호출 실패:', error);
     } finally {
       clearAuthStorage();
       navigate("/login", { replace: true });

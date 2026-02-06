@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { FileText, Briefcase, MapPin, Accessibility, Send } from "lucide-react";
 import CompanyLayout from "../../shared/CompanyHeader";
+import { getCompanyApiBaseUrl } from "../../api/Http";
 
 const PageContainer = styled.div`
   padding: 40px;
@@ -191,7 +192,8 @@ function JobPostEditPage() {
         setError("");
 
         const token = localStorage.getItem("companyToken");
-        const res = await fetch("/api/enterprise/company/job", {
+        const apiBaseUrl = getCompanyApiBaseUrl();
+        const res = await fetch(`${apiBaseUrl}/api/enterprise/company/job`, {
           headers: token
             ? {
                 Authorization: `Bearer ${token}`,
@@ -269,9 +271,10 @@ function JobPostEditPage() {
       env_stnd_walk: envStndWalk || "정보없음",
     };
 
+    const apiBaseUrl = getCompanyApiBaseUrl();
     const url = isEdit
-      ? `/api/enterprise/company/job/${jobId}`
-      : "/api/enterprise/company/job/register";
+      ? `${apiBaseUrl}/api/enterprise/company/job/${jobId}`
+      : `${apiBaseUrl}/api/enterprise/company/job/register`;
     const method = isEdit ? "PUT" : "POST";
 
     try {

@@ -2,7 +2,7 @@ import styled from '@emotion/styled';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User } from 'lucide-react';
-import { api, getUserIdFromToken } from '../../api/Http';
+import { api, getUserIdFromToken, getCompanyApiBaseUrl } from '../../api/Http';
 
 const Container = styled.div`
   display: flex;
@@ -320,8 +320,9 @@ function Login() {
         try {
           setIsLoadingCompanies(true);
           setCompanyError('');
-          // Vite dev 서버 프록시(`/api` → `http://34.64.188.189:4000`)를 통해 호출
-          const res = await fetch('/api/enterprise/company');
+          // API 베이스 URL 설정 (프로덕션에서는 절대 URL, 개발에서는 프록시 사용)
+          const apiBaseUrl = getCompanyApiBaseUrl();
+          const res = await fetch(`${apiBaseUrl}/api/enterprise/company`);
           if (!res.ok) {
             throw new Error('기업 목록을 불러오지 못했습니다.');
           }
@@ -337,7 +338,8 @@ function Login() {
 
       fetchCompanies();
     }
-  }, [activeTab, companies.length, isLoadingCompanies]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
 
   useEffect(() => {
     if (!showToast || !toastMessage) return;
@@ -433,7 +435,8 @@ function Login() {
 
     try {
       // 기업 회원 로그인: 인증코드만 보내는 로그인 요청
-      const res = await fetch('/api/user/login', {
+      const apiBaseUrl = getCompanyApiBaseUrl();
+      const res = await fetch(`${apiBaseUrl}/api/user/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -626,7 +629,8 @@ function Login() {
 
                         try {
                           setIsRegisterSubmitting(true);
-                          const res = await fetch('/api/enterprise/company/register', {
+                          const apiBaseUrl = getCompanyApiBaseUrl();
+                          const res = await fetch(`${apiBaseUrl}/api/enterprise/company/register`, {
                             method: 'POST',
                             headers: {
                               'Content-Type': 'application/json',
