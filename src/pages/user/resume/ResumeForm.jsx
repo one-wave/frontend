@@ -178,7 +178,7 @@ const RepresentativeWrap = styled.div`
   }
 `;
 
-function ResumeForm({ initialValues, onSubmit, submitLabel = "저장" }) {
+function ResumeForm({ initialValues, onSubmit, submitLabel = "저장", disabled = false, representativeReadOnly = false }) {
   const [formData, setFormData] = useState(() => ({
     resumeTitle: initialValues.resumeTitle ?? "",
     educations: [...(initialValues.educations ?? [])].map((e) => ({ ...EMPTY_EDUCATION, ...e })),
@@ -239,10 +239,16 @@ function ResumeForm({ initialValues, onSubmit, submitLabel = "저장" }) {
             <input
               type="checkbox"
               checked={formData.representative}
-              onChange={(e) => update("representative", e.target.checked)}
+              onChange={(e) => !representativeReadOnly && update("representative", e.target.checked)}
+              disabled={representativeReadOnly}
             />
             <Crown size={18} /> 대표 이력서로 지정
           </label>
+          {representativeReadOnly && (
+            <small style={{ display: "block", marginTop: 6, color: "#718096", fontSize: "0.85rem" }}>
+              대표 이력서 변경은 이력서 목록에서 할 수 있습니다.
+            </small>
+          )}
         </RepresentativeWrap>
       </Section>
 
@@ -555,7 +561,7 @@ function ResumeForm({ initialValues, onSubmit, submitLabel = "저장" }) {
         </AddBtn>
       </Section>
 
-      <SubmitBtn type="submit">
+      <SubmitBtn type="submit" disabled={disabled}>
         <Save size={18} /> {submitLabel}
       </SubmitBtn>
     </Form>

@@ -1,12 +1,14 @@
 /**
  * 이력서 추가 페이지.
- * API 연동 시: onSubmit에서 formData를 POST /api/resumes body로 전달.
+ * POST /api/resumes (ResumeRequest) 연동.
  */
 import styled from "@emotion/styled";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import Header from "../../../shared/Header";
-import { EMPTY_RESUME_FORM } from "./resumeApiShape";
+import { createResume } from "../../../api/Auth";
+import { EMPTY_RESUME_FORM, formToPayload } from "./resumeApiShape";
 import ResumeForm from "./ResumeForm";
 
 const Container = styled.div`
@@ -55,18 +57,34 @@ const Card = styled.div`
   margin-bottom: 20px;
 `;
 
+const ErrorMsg = styled.p`
+  color: #dc2626;
+  font-size: 0.95rem;
+  margin: 0 0 16px 0;
+`;
+
 function ResumeCreatePage() {
   const navigate = useNavigate();
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const handleBack = () => {
     navigate("/user/resumes");
   };
 
-  const handleSubmit = (formData) => {
-    // 연동 시: POST /api/resumes body로 formData 전달
-    console.log("POST /api/resumes body:", formData);
-    alert("저장되었습니다. (API 연동 후 실제 저장)");
-    navigate("/user/resumes");
+  const handleSubmit = async (formData) => {
+    setError("");
+    setSubmitting(true);
+    try {
+      const payload = formToPayload(formData);
+      const { data } = await createResume(payload);
+      navigate(data?.resumeId ? `/user/resumes/${data.resumeId}` : "/user/resumes");
+    } catch (err) {
+      const msg = err.response?.data?.message ?? err.response?.data?.error;
+      setError(typeof msg === "string" ? msg : "저장에 실패했습니다. 입력값을 확인해주세요.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -78,10 +96,12 @@ function ResumeCreatePage() {
         </BackBtn>
         <PageTitle>이력서 추가</PageTitle>
         <Card>
+          {error && <ErrorMsg>{error}</ErrorMsg>}
           <ResumeForm
             initialValues={EMPTY_RESUME_FORM}
             onSubmit={handleSubmit}
-            submitLabel="저장"
+            submitLabel={submitting ? "저장 중..." : "저장"}
+            disabled={submitting}
           />
         </Card>
       </Content>

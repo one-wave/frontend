@@ -1,6 +1,8 @@
 import styled from "@emotion/styled";
 import { useNavigate } from "react-router-dom";
 import { Accessibility, UserRound, LogOut } from "lucide-react";
+import { logout } from "../api/Auth";
+import { clearAuthStorage } from "../api/Http";
 
 // --- Styled Components ---
 const HeaderWrapper = styled.header`
@@ -56,8 +58,15 @@ const HeaderBtn = styled.button`
 function Header() {
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    navigate("/login");
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (_) {
+      // 401 등 실패해도 로컬만 정리 후 로그인으로
+    } finally {
+      clearAuthStorage();
+      navigate("/login", { replace: true });
+    }
   };
 
   return (
