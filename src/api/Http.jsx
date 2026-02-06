@@ -21,12 +21,29 @@ export function getCompanyApiBaseUrl() {
   if (import.meta.env.VITE_COMPANY_API_BASE_URL) {
     return import.meta.env.VITE_COMPANY_API_BASE_URL;
   }
-  // 개발 환경에서는 프록시 사용 (빈 문자열 = 상대 경로)
-  if (import.meta.env.DEV) {
-    return '';
+  
+  // 브라우저 환경에서 실행 중인 경우
+  if (typeof window !== 'undefined') {
+    const currentPort = window.location.port;
+    // 3000 포트에서 실행 중이면 절대 URL 사용 (pm2 배포 환경)
+    if (currentPort === '3000' || currentPort === '') {
+      return 'http://34.64.188.189:4000';
+    }
+    // 개발 환경(5173 포트)에서는 프록시 사용
+    if (currentPort === '5173' || import.meta.env.DEV) {
+      return '';
+    }
+    // 기타 프로덕션 환경에서는 절대 URL 사용
+    return 'http://34.64.188.189:4000';
   }
-  // 프로덕션에서는 절대 URL 사용
-  return 'http://34.64.188.189:4000';
+  
+  // 서버 사이드 렌더링 등 브라우저가 아닌 환경
+  // 프로덕션 모드이면 절대 URL 사용
+  if (import.meta.env.PROD || import.meta.env.MODE === 'production') {
+    return 'http://34.64.188.189:4000';
+  }
+  // 개발 환경에서는 프록시 사용 (빈 문자열 = 상대 경로)
+  return '';
 }
 
 /** JWT accessToken payload에서 sub(userId) 추출 */
