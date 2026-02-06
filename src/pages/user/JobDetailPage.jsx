@@ -380,12 +380,17 @@ function JobDetailPage() {
       }
       
       console.log("지원할 이력서 ID:", representativeResume.resumeId);
+      console.log("공고 ID (jobId):", jobId);
       
-      // 3. 지원하기 POST 요청
-      await api.post("/applications", {
+      const payload = {
         jobPostId: jobId,
         resumeId: representativeResume.resumeId
-      });
+      };
+      
+      console.log("전송할 데이터:", payload);
+      
+      // 3. 지원하기 POST 요청
+      await api.post("/applications", payload);
       
       alert("지원이 완료되었습니다!");
       // 필요시 지원 내역 페이지로 이동

@@ -57,21 +57,29 @@ const SearchSubmitBtn = styled.button`
   }
 `;
 
-function HeroSection({ searchKeyword, setSearchKeyword }) {
+function HeroSection({ searchInput, setSearchInput, onSearch }) {
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSearch();
+  };
+
   return (
     <HeroSectionWrapper>
       <HeroTitle>나에게 맞는 일자리를 찾아보세요</HeroTitle>
       <HeroSubtitle>접근성을 고려한 채용 공고만 모았습니다</HeroSubtitle>
-      <SearchBarWrapper>
-        <SearchInput
-          placeholder="직무, 회사명, 또는 키워드를 검색해보세요"
-          value={searchKeyword}
-          onChange={(e) => setSearchKeyword(e.target.value)}
-        />
-        <SearchSubmitBtn>
-          <Search size={18} /> 검색
-        </SearchSubmitBtn>
-      </SearchBarWrapper>
+      <form onSubmit={handleSubmit}>
+        <SearchBarWrapper>
+          <SearchInput
+            placeholder="직무, 회사명, 또는 키워드를 검색해보세요"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && handleSubmit(e)}
+          />
+          <SearchSubmitBtn type="submit">
+            <Search size={18} /> 검색
+          </SearchSubmitBtn>
+        </SearchBarWrapper>
+      </form>
     </HeroSectionWrapper>
   );
 }
