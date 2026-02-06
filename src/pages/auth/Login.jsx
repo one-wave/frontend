@@ -362,8 +362,7 @@ function Login() {
   const isCompanyNotFound =
     companySearch.trim().length > 0 && filteredCompanies.length === 0;
 
-  const handleLogin = (e) => {
-
+  const handleLogin = async (e) => {
     e.preventDefault();
 
     const userType = activeTab === 'individual' ? 'jobseeker' : 'company';
@@ -387,7 +386,7 @@ function Login() {
 
     try {
       // 기업 회원 로그인: 인증코드만 보내는 로그인 요청
-      const res =  fetch('/api/user/login', {
+      const res = await fetch('/api/user/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -401,14 +400,25 @@ function Login() {
         throw new Error('로그인 요청이 실패했습니다.');
       }
 
-      const result = res.json();
+      const result = await res.json();
       console.log('기업 로그인 성공 응답:', result);
+
+      // 로그인 성공 시 기업용 토큰 저장
+      if (result?.success && result?.token) {
+        try {
+          localStorage.setItem('companyToken', result.token);
+          if (result.expiresAt) {
+            localStorage.setItem('companyTokenExpiresAt', result.expiresAt);
+          }
+        } catch (storageError) {
+          console.error('토큰 저장 중 오류 발생:', storageError);
+        }
+      }
 
       navigate('/company/dashboard', {
         state: {
           company: selectedCompany,
           authCode: authCode.trim(),
-          loginResult: result,
         },
       });
     } catch (error) {
