@@ -160,8 +160,6 @@ function CompanyDashboardPage() {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    localStorage.removeItem('isLoggedIn');
-    localStorage.removeItem('userType');
     navigate('/login');
   };
 

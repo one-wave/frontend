@@ -8,10 +8,6 @@ import CompanyDashboardPage from '../pages/CompanyDashboardPage';
 import JobPostPage from '../pages/JobPostPage';
 
 function Router() {
-  // 임시로 localStorage 사용 (추후 전역 상태관리로 변경)
-  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-  const userType = localStorage.getItem('userType'); // 'jobseeker' or 'company'
-
   return (
     <BrowserRouter>
       <Routes>
@@ -20,25 +16,13 @@ function Router() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
         
-        {/* 구직자 - 로그인 필요 */}
-        <Route 
-          path="/user/job/:jobId" 
-          element={isLoggedIn ? <JobDetailPage /> : <Navigate to="/login" replace />} 
-        />
-        <Route 
-          path="/user/mypage" 
-          element={isLoggedIn ? <MyPage /> : <Navigate to="/login" replace />} 
-        />
+        {/* 구직자 */}
+        <Route path="/user/job/:jobId" element={<JobDetailPage />} />
+        <Route path="/user/mypage" element={<MyPage />} />
         
-        {/* 기업 - 로그인 필요 */}
-        <Route 
-          path="/company/dashboard" 
-          element={isLoggedIn && userType === 'company' ? <CompanyDashboardPage /> : <Navigate to="/login" replace />} 
-        />
-        <Route 
-          path="/company/job-post" 
-          element={isLoggedIn && userType === 'company' ? <JobPostPage /> : <Navigate to="/login" replace />} 
-        />
+        {/* 기업 */}
+        <Route path="/company/dashboard" element={<CompanyDashboardPage />} />
+        <Route path="/company/job-post" element={<JobPostPage />} />
         
         {/* 404 */}
         <Route path="*" element={<Navigate to="/" replace />} />

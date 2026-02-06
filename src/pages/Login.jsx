@@ -29,7 +29,8 @@ const LogoIcon = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white; font-size: 28px;
+  margin: 0 auto 16px;
+  color: white;
 `;
 
 const Title = styled.h1`
@@ -167,10 +168,8 @@ function Login() {
 
   const handleLogin = (e) => {
     e.preventDefault();
-    localStorage.setItem('isLoggedIn', 'true');
     
     const userType = activeTab === 'individual' ? 'jobseeker' : 'company';
-    localStorage.setItem('userType', userType);
     
     if (userType === 'jobseeker') {
       navigate('/');
@@ -181,13 +180,13 @@ function Login() {
 
   return (
     <Container>
+      <LogoIcon>
+        <User size={32} />
+      </LogoIcon>
+      <Title>배리어 프리</Title>
+      <Subtitle>장애인 구직자와 기업을 연결합니다</Subtitle>
+      
       <LoginBox>
-        <LogoIcon>
-          <User size={32} />
-        </LogoIcon>
-        <Title>배리어 프리</Title>
-        <Subtitle>장애인 구직자와 기업을 연결합니다</Subtitle>
-
         <TabContainer>
           <Tab 
             active={activeTab === 'individual'} 
@@ -220,7 +219,6 @@ function Login() {
               placeholder="example@email.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              required
             />
           </InputGroup>
           
@@ -231,7 +229,6 @@ function Login() {
               placeholder="8자 이상 입력하세요"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              required
             />
           </InputGroup>
           
