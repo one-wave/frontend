@@ -4,46 +4,41 @@ import { useNavigate } from 'react-router-dom';
 import { User, Eye, EyeOff, Lock, Mail, UserPlus } from 'lucide-react';
 import { userSignup } from '../../api/Auth';
 import { getUserIdFromToken } from '../../api/Http';
+import Dropdown from '../../components/Dropdown';
 
-// 백엔드 SignupRequest / EnvCondition enum 값 (value=API 전송값, label=화면 표시)
+// 백엔드 EnvCondition enum (NO_INFO는 서버 내부 fallback이므로 사용자 선택 항목에서 제외)
 const ENV_BOTH_HANDS = [
   { value: 'IMPOSSIBLE', label: '불가능' },
-  { value: 'NO_INFO', label: '정보없음' },
   { value: 'ONE_HAND', label: '한손작업 가능' },
   { value: 'ONE_HAND_ASSIST', label: '한손보조작업 가능' },
   { value: 'BOTH_HANDS', label: '양손작업 가능' },
 ];
 const ENV_EYE_SIGHT = [
   { value: 'IMPOSSIBLE', label: '불가능' },
-  { value: 'NO_INFO', label: '정보없음' },
   { value: 'LARGE_PRINT', label: '비교적 큰 인쇄물을 읽을 수 있음' },
   { value: 'DAILY_ACTIVITY', label: '일상적 활동 가능' },
   { value: 'FINE_PRINT', label: '아주 작은 글씨를 읽을 수 있음' },
 ];
 const ENV_HAND_WORK = [
   { value: 'IMPOSSIBLE', label: '불가능' },
-  { value: 'NO_INFO', label: '정보없음' },
   { value: 'LARGE_ASSEMBLY', label: '큰 물품 조립가능' },
   { value: 'SMALL_ASSEMBLY', label: '작은 물품 조립가능' },
   { value: 'PRECISION', label: '정밀한 작업가능' },
 ];
 const ENV_LIFT_POWER = [
   { value: 'IMPOSSIBLE', label: '불가능' },
-  { value: 'NO_INFO', label: '정보없음' },
   { value: 'UNDER_5KG', label: '5Kg 이내의 물건을 다룰 수 있음' },
   { value: 'UNDER_20KG', label: '5~20Kg의 물건을 다룰 수 있음' },
   { value: 'OVER_20KG', label: '20Kg 이상의 물건을 다룰 수 있음' },
 ];
 const ENV_LSTN_TALK = [
   { value: 'IMPOSSIBLE', label: '불가능' },
-  { value: 'NO_INFO', label: '정보없음' },
   { value: 'DIFFICULT', label: '듣고 말하는 작업 어려움' },
   { value: 'SIMPLE', label: '간단한 듣고 말하기 가능' },
   { value: 'FLUENT', label: '듣고 말하기에 어려움 없음' },
 ];
 const ENV_STND_WALK = [
   { value: 'IMPOSSIBLE', label: '불가능' },
-  { value: 'NO_INFO', label: '정보없음' },
   { value: 'DIFFICULT', label: '서거나 걷는 일 어려움' },
   { value: 'PARTIAL', label: '일부 서서하는 작업 가능' },
   { value: 'PROLONGED', label: '오랫동안 가능' },
@@ -184,21 +179,6 @@ const PasswordToggle = styled.button`
   cursor: pointer;
   display: flex;
   align-items: center;
-`;
-
-const Select = styled.select`
-  width: 100%;
-  padding: 0.8rem 1rem 0.8rem 2.5rem;
-  border-radius: 10px;
-  border: 1px solid #d1d5db;
-  font-size: 0.95rem;
-  outline: none;
-  box-sizing: border-box;
-  background-color: white;
-  &:focus {
-    border-color: #1e3a8a;
-    box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
-  }
 `;
 
 const SectionLabel = styled.div`
@@ -434,51 +414,27 @@ const Signup = () => {
               <SectionLabel>작업 환경·능력 (구직 매칭에 사용됩니다)</SectionLabel>
               <InputGroup>
                 <Label>양손 작업 능력</Label>
-                <Select value={envBothHands} onChange={(e) => setEnvBothHands(e.target.value)}>
-                  {ENV_BOTH_HANDS.map((o) => (
-                    <option key={o.value} value={o.value}>{o.label}</option>
-                  ))}
-                </Select>
+                <Dropdown options={ENV_BOTH_HANDS} value={envBothHands} onChange={setEnvBothHands} />
               </InputGroup>
               <InputGroup>
                 <Label>시력 수준</Label>
-                <Select value={envEyeSight} onChange={(e) => setEnvEyeSight(e.target.value)}>
-                  {ENV_EYE_SIGHT.map((o) => (
-                    <option key={o.value} value={o.value}>{o.label}</option>
-                  ))}
-                </Select>
+                <Dropdown options={ENV_EYE_SIGHT} value={envEyeSight} onChange={setEnvEyeSight} />
               </InputGroup>
               <InputGroup>
                 <Label>손작업 정밀도</Label>
-                <Select value={envHandWork} onChange={(e) => setEnvHandWork(e.target.value)}>
-                  {ENV_HAND_WORK.map((o) => (
-                    <option key={o.value} value={o.value}>{o.label}</option>
-                  ))}
-                </Select>
+                <Dropdown options={ENV_HAND_WORK} value={envHandWork} onChange={setEnvHandWork} />
               </InputGroup>
               <InputGroup>
                 <Label>들기 힘</Label>
-                <Select value={envLiftPower} onChange={(e) => setEnvLiftPower(e.target.value)}>
-                  {ENV_LIFT_POWER.map((o) => (
-                    <option key={o.value} value={o.value}>{o.label}</option>
-                  ))}
-                </Select>
+                <Dropdown options={ENV_LIFT_POWER} value={envLiftPower} onChange={setEnvLiftPower} />
               </InputGroup>
               <InputGroup>
                 <Label>듣고 말하기 능력</Label>
-                <Select value={envLstnTalk} onChange={(e) => setEnvLstnTalk(e.target.value)}>
-                  {ENV_LSTN_TALK.map((o) => (
-                    <option key={o.value} value={o.value}>{o.label}</option>
-                  ))}
-                </Select>
+                <Dropdown options={ENV_LSTN_TALK} value={envLstnTalk} onChange={setEnvLstnTalk} />
               </InputGroup>
               <InputGroup>
                 <Label>서서 걷기 능력</Label>
-                <Select value={envStndWalk} onChange={(e) => setEnvStndWalk(e.target.value)}>
-                  {ENV_STND_WALK.map((o) => (
-                    <option key={o.value} value={o.value}>{o.label}</option>
-                  ))}
-                </Select>
+                <Dropdown options={ENV_STND_WALK} value={envStndWalk} onChange={setEnvStndWalk} />
               </InputGroup>
 
               {errorMessage && <ErrorText>{errorMessage}</ErrorText>}
