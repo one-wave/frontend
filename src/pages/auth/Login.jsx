@@ -407,6 +407,7 @@ function Login() {
       if (result?.success && result?.token) {
         try {
           localStorage.setItem('companyToken', result.token);
+          localStorage.setItem('companyAuthCode', authCode.trim());
           if (result.expiresAt) {
             localStorage.setItem('companyTokenExpiresAt', result.expiresAt);
           }

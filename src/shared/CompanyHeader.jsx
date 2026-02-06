@@ -7,6 +7,7 @@ import {
   LogOut,
   Accessibility,
 } from "lucide-react";
+import { clearCompanyAuthStorage } from "../api/Http";
 
 const LayoutContainer = styled.div`
   display: flex;
@@ -136,7 +137,10 @@ function CompanyLayout({ children, headerTitle, headerSubtitle }) {
   const isCompanyState = location.pathname === "/company/state";
 
   const handleLogout = () => {
-    navigate("/login");
+    // 기업 토큰만 삭제
+    clearCompanyAuthStorage();
+    // 로그인 페이지로 이동
+    navigate("/login", { replace: true });
   };
 
   return (
