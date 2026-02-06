@@ -2,11 +2,7 @@ import styled from "@emotion/styled";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  LayoutDashboard,
   FileText,
-  Settings,
-  LogOut,
-  Accessibility,
   Briefcase,
   MapPin,
   Clock,
@@ -18,124 +14,10 @@ import {
   HandMetal,
   ArrowUpDown,
   Grid3X3,
+  Accessibility,
 } from "lucide-react";
+import CompanyLayout from "../../shared/CompanyHeader";
 
-const LayoutContainer = styled.div`
-  display: flex;
-  min-height: 100vh;
-  background-color: #f5f7fb;
-`;
-
-// 1. Sidebar (Consistent styling)
-const Sidebar = styled.aside`
-  width: 260px;
-  background-color: #243c5a;
-  color: white;
-  display: flex;
-  flex-direction: column;
-  flex-shrink: 0;
-`;
-
-const SidebarHeader = styled.div`
-  height: 80px;
-  display: flex;
-  align-items: center;
-  padding: 0 24px;
-  font-size: 1.2rem;
-  font-weight: 800;
-  gap: 10px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-`;
-
-const Menu = styled.nav`
-  flex: 1;
-  padding: 20px 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-`;
-
-const MenuItem = styled.button`
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px 16px;
-  background-color: ${(props) =>
-    props.active ? "rgba(255,255,255,0.1)" : "transparent"};
-  color: ${(props) => (props.active ? "white" : "#a0aec0")};
-  border-radius: 8px;
-  font-size: 0.95rem;
-  font-weight: 500;
-  text-align: left;
-  transition: all 0.2s;
-
-  &:hover {
-    background-color: rgba(255, 255, 255, 0.15);
-    color: white;
-  }
-`;
-
-const SidebarFooter = styled.div`
-  padding: 24px;
-  font-size: 0.75rem;
-  color: #718096;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-`;
-
-// 2. Main Area
-const MainContent = styled.main`
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-`;
-
-// Header
-const Header = styled.header`
-  height: 80px;
-  background: white;
-  border-bottom: 1px solid #e2e8f0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 40px;
-`;
-
-const HeaderTitle = styled.div`
-  h2 {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: #2d3748;
-    margin-bottom: 4px;
-  }
-  p {
-    font-size: 0.85rem;
-    color: #718096;
-  }
-`;
-
-const HeaderActions = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 12px;
-`;
-
-const ActionBtn = styled.button`
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  border: 1px solid #e2e8f0;
-  background: white;
-  border-radius: 6px;
-  font-size: 0.9rem;
-  color: #4a5568;
-  &:hover {
-    background: #f7fafc;
-  }
-`;
-
-// Form Content Area
 const FormContainer = styled.div`
   padding: 40px;
   overflow-y: auto;
@@ -382,8 +264,6 @@ function JobPostPage() {
     setFacilities({ ...facilities, [key]: !facilities[key] });
   };
 
-  const handleLogout = () => navigate("/login");
-
   const handleSubmit = (e) => {
     e.preventDefault();
     alert("채용 공고가 성공적으로 등록되었습니다.");
@@ -391,44 +271,11 @@ function JobPostPage() {
   };
 
   return (
-    <LayoutContainer>
-      {/* Sidebar */}
-      <Sidebar>
-        <SidebarHeader>
-          <Accessibility size={28} />
-          배리어 프리
-        </SidebarHeader>
-        <Menu>
-          <MenuItem onClick={() => navigate("/company/dashboard")}>
-            <LayoutDashboard size={20} /> 대시보드
-          </MenuItem>
-          <MenuItem active>
-            <FileText size={20} /> 공고 관리
-          </MenuItem>
-          <MenuItem>
-            <Settings size={20} /> 설정
-          </MenuItem>
-        </Menu>
-        <SidebarFooter>기업 관리자 포털 v1.0</SidebarFooter>
-      </Sidebar>
-
-      {/* Main Content */}
-      <MainContent>
-        {/* Top Header */}
-        <Header>
-          <HeaderTitle>
-            <h2>채용 공고 등록</h2>
-            <p>새로운 채용 공고를 작성합니다</p>
-          </HeaderTitle>
-          <HeaderActions>
-            <ActionBtn onClick={handleLogout}>
-              <LogOut size={18} /> 로그아웃
-            </ActionBtn>
-          </HeaderActions>
-        </Header>
-
-        {/* Content Body */}
-        <FormContainer>
+    <CompanyLayout
+      headerTitle="채용 공고 등록"
+      headerSubtitle="새로운 채용 공고를 작성합니다"
+    >
+      <FormContainer>
           {/* Blue Banner */}
           <TopBanner>
             <h1>채용 공고 등록</h1>
@@ -644,9 +491,8 @@ function JobPostPage() {
               </BottomBtn>
             </BottomActions>
           </form>
-        </FormContainer>
-      </MainContent>
-    </LayoutContainer>
+      </FormContainer>
+    </CompanyLayout>
   );
 }
 
