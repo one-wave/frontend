@@ -1,610 +1,590 @@
 import styled from "@emotion/styled";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+// import { api } from "../../api/axios"; // 백엔드 연결 시 주석 해제
 import {
   User,
-  FileText,
-  Settings,
-  Upload,
-  Save,
+  Crown,
   Edit3,
-  Building,
-  Monitor,
-  Briefcase,
+  FolderOpen,
+  Send,
+  Calendar,
+  Bookmark,
+  Activity,
+  Phone,
+  Mail,
+  Calendar as CalendarIcon,
   CheckCircle,
-  RefreshCw,
-  Trash2,
 } from "lucide-react";
 import Header from "../../shared/Header";
 
-// --- Styled Components ---
+// --- 목데이터 (백엔드 API 명세와 동일한 구조) ---
+const MOCK_PROFILE_DATA = {
+  lastName: "이",
+  firstName: "수현",
+  email: "suhyeon.lee@example.com",
+  userPhone: "010-9876-5432",
+  birthDate: "1999-05-20",
+  // 아래는 API 명세서의 신체/환경 조건 필드들
+  envBothHandsLabel: "양손작업 가능",
+  envEyeSightLabel: "일상적 활동 가능",
+  envHandWorkLabel: "정밀한 조립 가능",
+  envLiftPowerLabel: "5Kg 이내의 물건을 다룰 수 있음",
+  envLstnTalkLabel: "듣고 말하기에 어려움 없음",
+  envStndWalkLabel: "오랫동안 서있기 가능",
+};
+
+// --- Styled Components (스타일 정의) ---
 
 const Container = styled.div`
   width: 100%;
   min-height: 100vh;
-  background-color: #f8f9fa;
+  background-color: #f5f7fa;
 `;
 
-// 1. Hero Section
-const HeroSection = styled.div`
-  background-color: #0b4da2;
-  padding: 50px 0;
-  text-align: center;
-  color: white;
-`;
-
-const HeroTitle = styled.h1`
-  font-size: 1.8rem;
-  font-weight: 700;
-  margin-bottom: 10px;
-`;
-
-const HeroSubtitle = styled.p`
-  font-size: 1rem;
-  opacity: 0.8;
-`;
-
-// 2. Main Content
 const Content = styled.main`
   max-width: 800px;
-  margin: -30px auto 60px;
-  margin-top: 40px;
-  padding: 0 20px;
+  margin: 0 auto;
+  padding: 40px 20px;
   display: flex;
   flex-direction: column;
   gap: 24px;
+  padding-bottom: 80px;
 `;
 
 const Card = styled.div`
   background: white;
   border: 1px solid #e1e1e1;
-  border-radius: 12px;
-  padding: 30px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
-`;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  overflow: hidden;
+  transition: box-shadow 0.2s;
 
-const CardHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid #eee;
-`;
-
-const CardTitle = styled.h2`
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #333;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-`;
-
-// Profile Section
-const ProfileWrapper = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 24px;
-`;
-
-const AvatarCircle = styled.div`
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  background-color: #eff6ff;
-  border: 2px solid #0b4da2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #0b4da2;
-  flex-shrink: 0;
-`;
-
-const ProfileInfo = styled.div`
-  flex: 1;
-`;
-
-const ProfileName = styled.h3`
-  font-size: 1.25rem;
-  font-weight: 700;
-  margin-bottom: 8px;
-`;
-
-const ProfileDesc = styled.p`
-  font-size: 0.95rem;
-  color: #666;
-  line-height: 1.5;
-`;
-
-const EditButton = styled.button`
-  border: 1px solid #0b4da2;
-  background: white;
-  color: #0b4da2;
-  padding: 8px 16px;
-  border-radius: 4px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
   &:hover {
-    background: #f0f7ff;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
   }
 `;
 
-// Resume Section - Uploaded State
-const UploadedArea = styled.div`
-  border: 2px dashed #2e7d32;
-  background-color: #e8f5e9;
-  border-radius: 12px;
+// 1. 프로필 섹션 스타일
+const ProfileSection = styled.div`
   padding: 30px;
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 `;
 
-const UploadSuccessMsg = styled.h3`
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #1b5e20;
-  margin-bottom: 8px;
-`;
-
-const UploadSubMsg = styled.p`
-  font-size: 0.95rem;
-  color: #4caf50;
-  margin-bottom: 24px;
-`;
-
-const UploadedFileCard = styled.div`
-  background: white;
-  border: 1px solid #c8e6c9;
-  border-radius: 8px;
-  padding: 16px 20px;
+const ProfileHeader = styled.div`
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  max-width: 600px;
-  margin: 0 auto;
+  align-items: flex-start;
+
+  @media (max-width: 600px) {
+    flex-direction: column;
+    gap: 16px;
+  }
 `;
 
-const FileInfo = styled.div`
+const ProfileBasicInfo = styled.div`
+  display: flex;
+  gap: 24px;
+  align-items: center;
+
+  @media (max-width: 600px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+`;
+
+const Avatar = styled.div`
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background-color: #f0f4f8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1b3a6b;
+  border: 2px solid #dee2e6;
+  font-size: 1.5rem;
+  font-weight: 700;
+  flex-shrink: 0;
+`;
+
+const InfoText = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+`;
+
+const NameWrapper = styled.div`
   display: flex;
   align-items: center;
   gap: 12px;
 `;
 
-const FileIcon = styled(FileText)`
-  color: #2e7d32;
-`;
-
-const FileName = styled.p`
-  font-weight: 600;
-  font-size: 1rem;
+const Name = styled.h3`
+  font-size: 1.6rem;
+  font-weight: 800;
   color: #333;
-  margin-bottom: 4px;
+  margin: 0;
 `;
 
-const FileSize = styled.span`
+const StatusBadge = styled.span`
+  background-color: #e8f5e9;
+  color: #2e7d32;
   font-size: 0.85rem;
-  color: #888;
+  font-weight: 700;
+  padding: 6px 10px;
+  border-radius: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 `;
 
-const FileActions = styled.div`
+const TagRow = styled.div`
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 4px;
 `;
 
-const FileActionBtn = styled.button`
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-size: 0.9rem;
-  font-weight: 600;
+const InfoTag = styled.div`
   display: flex;
   align-items: center;
   gap: 6px;
-  background: white;
-  cursor: pointer;
-  border: 1px solid ${(props) => (props.delete ? "#e57373" : "#0b4da2")};
-  color: ${(props) => (props.delete ? "#d32f2f" : "#0b4da2")};
-
-  &:hover {
-    background: ${(props) => (props.delete ? "#ffebee" : "#f0f7ff")};
-  }
+  font-size: 0.9rem;
+  color: #555;
+  background-color: #f8f9fa;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid #eee;
 `;
 
-// Resume Section - Initial Upload
-const UploadArea = styled.div`
-  border: 2px dashed #d0d0d0;
+const ActionLink = styled.button`
+  background: none;
+  border: 1px solid #ddd;
   border-radius: 8px;
-  padding: 40px;
-  text-align: center;
-  background-color: #fafafa;
   cursor: pointer;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+  color: #666;
+  font-weight: 600;
   transition: all 0.2s;
 
   &:hover {
-    border-color: #0b4da2;
-    background-color: #f0f7ff;
+    background-color: #f0f0f0;
+    color: #333;
   }
 `;
 
-const UploadIconWrapper = styled.div`
-  width: 48px;
-  height: 48px;
-  background: #e3f2fd;
-  color: #0b4da2;
-  border-radius: 8px;
+const Divider = styled.hr`
+  border: none;
+  border-top: 1px solid #eee;
+  margin: 0;
+`;
+
+// 신체/환경 조건 그리드
+const CapabilitySection = styled.div`
   display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 16px;
+  flex-direction: column;
+  gap: 16px;
 `;
 
-const FileInput = styled.input`
-  display: none;
-`;
-
-// Facilities Section
-const SectionGroup = styled.div`
-  margin-bottom: 30px;
-  &:last-child {
-    margin-bottom: 0;
-  }
-`;
-
-const SubTitle = styled.h4`
-  font-size: 1rem;
-  font-weight: 600;
-  color: #444;
-  margin-bottom: 16px;
+const SectionTitle = styled.h2`
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1b3a6b;
   display: flex;
   align-items: center;
   gap: 8px;
+  margin: 0;
 `;
 
-const GridContainer = styled.div`
+const CapabilityGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
+  gap: 12px;
 
   @media (max-width: 600px) {
     grid-template-columns: 1fr;
   }
 `;
 
-const CheckItem = styled.label`
+const CapabilityItem = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background-color: #fff;
+  padding: 16px;
+  border-radius: 10px;
+  border: 1px solid #eee;
+  word-break: keep-all;
+`;
+
+const CapLabel = styled.span`
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #1b3a6b;
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px;
-  border: 1px solid ${(props) => (props.checked ? "#0b4da2" : "#eee")};
-  border-radius: 6px;
-  background: ${(props) => (props.checked ? "#f0f7ff" : "white")};
-  cursor: pointer;
-  transition: all 0.2s;
+  gap: 6px;
+`;
 
-  &:hover {
-    border-color: #0b4da2;
-  }
+const CapValue = styled.span`
+  font-size: 0.95rem;
+  color: #333;
+  font-weight: 500;
+  line-height: 1.4;
+`;
 
-  input {
-    width: 18px;
-    height: 18px;
-    accent-color: #0b4da2;
-  }
+// 2. 대표 이력서 섹션 스타일
+const ResumeHeader = styled.div`
+  background-color: #1b3a6b;
+  padding: 18px 24px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: white;
+  font-weight: 700;
+  font-size: 1.1rem;
+`;
 
-  span {
-    font-size: 0.95rem;
-    color: #333;
+const ResumeBody = styled.div`
+  padding: 30px;
+`;
+
+const HelperText = styled.p`
+  font-size: 0.9rem;
+  color: #8898aa;
+  margin-bottom: 20px;
+`;
+
+const ResumeTitle = styled.h3`
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 2px dashed #eee;
+`;
+
+const InfoGrid = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 30px;
+
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
   }
 `;
 
-// Footer Action
-const SaveButton = styled.button`
-  width: 100%;
-  background-color: #0b4da2;
-  color: white;
+const InfoBox = styled.div`
+  background-color: #f8f9fa;
   padding: 16px;
   border-radius: 8px;
-  font-size: 1.1rem;
-  font-weight: 700;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(11, 77, 162, 0.2);
+  border: 1px solid #eee;
 
-  &:hover {
-    background-color: #093c80;
+  label {
+    display: block;
+    font-size: 0.85rem;
+    color: #8898aa;
+    margin-bottom: 6px;
+  }
+  p {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
   }
 `;
+
+const ButtonGroup = styled.div`
+  display: flex;
+  gap: 12px;
+  @media (max-width: 600px) {
+    flex-direction: column;
+  }
+`;
+
+const ActionButton = styled.button`
+  flex: 1;
+  padding: 16px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s;
+
+  ${(props) =>
+    props.primary
+      ? `
+    background-color: #1B3A6B;
+    color: white;
+    border: none;
+    box-shadow: 0 4px 6px rgba(27, 58, 107, 0.2);
+    &:hover { background-color: #162f56; transform: translateY(-1px); }
+  `
+      : `
+    background-color: white;
+    color: #333;
+    border: 1px solid #ddd;
+    &:hover { background-color: #f8f9fa; border-color: #ccc; }
+  `}
+`;
+
+// 3. 활동 현황 스타일
+const ActivityContainer = styled.div`
+  padding: 30px;
+`;
+
+const ActivityGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-top: 24px;
+
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const ActivityItem = styled.div`
+  border: 1px solid #eee;
+  border-radius: 12px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background-color: #fff;
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-color: #1b3a6b;
+  }
+`;
+
+const IconCircle = styled.div`
+  width: 50px;
+  height: 50px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+  background-color: ${(props) => props.bg || "#f0f4f8"};
+  color: ${(props) => props.color || "#333"};
+`;
+
+const Count = styled.span`
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #333;
+`;
+
+const Label = styled.span`
+  font-size: 0.95rem;
+  color: #666;
+  font-weight: 500;
+`;
+
+// --- Main Component ---
 
 function MyPage() {
   const navigate = useNavigate();
-  const [fileName, setFileName] = useState("");
-  const [fileSize, setFileSize] = useState("");
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const [facilities, setFacilities] = useState({
-    wheelchair: false,
-    elevator: false,
-    parking: false,
-    braille: false,
-    screenReader: false,
-    signLang: false,
-    monitor: false,
-    remote: false,
-    flexible: false,
-    shortTime: false,
-  });
+  useEffect(() => {
+    // 실제 API 호출 대신 목데이터를 사용하는 로직
+    const fetchProfile = async () => {
+      setLoading(true);
+      try {
+        // 백엔드 통신 시뮬레이션 (0.5초 딜레이)
+        setTimeout(() => {
+          setProfile(MOCK_PROFILE_DATA);
+          setLoading(false);
+        }, 500);
 
-  const handleFileUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setFileName(file.name);
-      setFileSize((file.size / (1024 * 1024)).toFixed(1) + " MB");
-    }
-  };
+        // --- [백엔드 연결 시 사용할 코드] ---
+        // const response = await api.get("/api/profile");
+        // setProfile(response.data);
+        // setLoading(false);
+      } catch (error) {
+        console.error("프로필 조회 실패:", error);
+        setLoading(false);
+      }
+    };
+    fetchProfile();
+  }, []);
 
-  const handleFileDelete = () => {
-    setFileName("");
-    setFileSize("");
-  };
+  if (loading) {
+    return (
+      <div style={{ padding: "100px", textAlign: "center", color: "#666" }}>
+        정보를 불러오는 중입니다...
+      </div>
+    );
+  }
 
-  const handleFileReplace = () => {
-    document.getElementById("resume-file").click();
-  };
-
-  const toggleCheck = (key) => {
-    setFacilities((prev) => ({ ...prev, [key]: !prev[key] }));
-  };
-
-  const handleSave = () => {
-    alert("설정이 저장되었습니다!");
-  };
+  // 데이터가 없을 경우를 대비한 안전 장치 (초기값은 목데이터)
+  const user = profile || MOCK_PROFILE_DATA;
 
   return (
     <Container>
       <Header />
 
-      <HeroSection>
-        <HeroTitle>마이페이지</HeroTitle>
-        <HeroSubtitle>프로필과 편의시설 설정을 관리하세요</HeroSubtitle>
-      </HeroSection>
-
       <Content>
-        {/* 1. Profile Summary Card */}
+        {/* 1. 프로필 정보 (목데이터 적용됨) */}
         <Card>
-          <CardHeader
-            style={{ borderBottom: "none", paddingBottom: 0, marginBottom: 0 }}
-          >
-            <CardTitle>
-              <User size={20} /> 프로필 요약
-            </CardTitle>
-            <EditButton onClick={() => alert("수정 페이지로 이동")}>
-              <Edit3 size={16} /> 수정
-            </EditButton>
-          </CardHeader>
+          <ProfileSection>
+            <ProfileHeader>
+              <ProfileBasicInfo>
+                <Avatar>{user.lastName ? user.lastName[0] : <User />}</Avatar>
 
-          <div style={{ marginTop: "20px" }}>
-            <ProfileWrapper>
-              <AvatarCircle>
-                <User size={40} />
-              </AvatarCircle>
-              <ProfileInfo>
-                <ProfileName>김지원</ProfileName>
-                <ProfileDesc>
-                  웹 개발에 관심이 많은 시각장애 구직자입니다. 스크린 리더
-                  환경에서도 효율적으로 작업할 수 있으며, 접근성 높은 웹
-                  서비스를 만들고 싶습니다.
-                </ProfileDesc>
-              </ProfileInfo>
-            </ProfileWrapper>
-          </div>
+                <InfoText>
+                  <NameWrapper>
+                    <Name>
+                      {user.lastName}
+                      {user.firstName}
+                    </Name>
+                    <StatusBadge>
+                      <CheckCircle size={12} /> 구직 중
+                    </StatusBadge>
+                  </NameWrapper>
+
+                  <TagRow>
+                    <InfoTag>
+                      <Mail size={14} /> {user.email}
+                    </InfoTag>
+                    <InfoTag>
+                      <Phone size={14} /> {user.userPhone}
+                    </InfoTag>
+                    <InfoTag>
+                      <CalendarIcon size={14} /> {user.birthDate}
+                    </InfoTag>
+                  </TagRow>
+                </InfoText>
+              </ProfileBasicInfo>
+
+              <ActionLink onClick={() => navigate("/user/profile/edit")}>
+                <Edit3 size={16} /> 정보 수정
+              </ActionLink>
+            </ProfileHeader>
+
+            <Divider />
+
+            <CapabilitySection>
+              <SectionTitle>
+                <Activity size={20} color="#1b3a6b" /> 나의 업무 환경 및 신체
+                역량
+              </SectionTitle>
+              <CapabilityGrid>
+                <CapabilityItem>
+                  <CapLabel>✋ 양손 작업</CapLabel>
+                  <CapValue>{user.envBothHandsLabel || "정보 없음"}</CapValue>
+                </CapabilityItem>
+                <CapabilityItem>
+                  <CapLabel>👁 시력 활동</CapLabel>
+                  <CapValue>{user.envEyeSightLabel || "정보 없음"}</CapValue>
+                </CapabilityItem>
+                <CapabilityItem>
+                  <CapLabel>🔧 정밀 작업(손)</CapLabel>
+                  <CapValue>{user.envHandWorkLabel || "정보 없음"}</CapValue>
+                </CapabilityItem>
+                <CapabilityItem>
+                  <CapLabel>💪 들어올리기</CapLabel>
+                  <CapValue>{user.envLiftPowerLabel || "정보 없음"}</CapValue>
+                </CapabilityItem>
+                <CapabilityItem>
+                  <CapLabel>🗣 듣고 말하기</CapLabel>
+                  <CapValue>{user.envLstnTalkLabel || "정보 없음"}</CapValue>
+                </CapabilityItem>
+                <CapabilityItem>
+                  <CapLabel>🚶 서있기/보행</CapLabel>
+                  <CapValue>{user.envStndWalkLabel || "정보 없음"}</CapValue>
+                </CapabilityItem>
+              </CapabilityGrid>
+            </CapabilitySection>
+          </ProfileSection>
         </Card>
 
-        {/* 2. Resume Management Card */}
+        {/* 2. 대표 이력서 (이름: 이수현) */}
         <Card>
-          <CardHeader>
-            <CardTitle>
-              <FileText size={20} /> 이력서 관리
-            </CardTitle>
-          </CardHeader>
+          <ResumeHeader>
+            <Crown size={20} fill="white" /> 나의 대표 이력서
+          </ResumeHeader>
+          <ResumeBody>
+            <HelperText>기업에게 가장 먼저 보여지는 이력서입니다.</HelperText>
 
-          <FileInput
-            id="resume-file"
-            type="file"
-            accept=".pdf"
-            onChange={handleFileUpload}
-          />
+            {/* 목데이터 이름에 맞춰 제목 수정 */}
+            <ResumeTitle>
+              웹 프론트엔드 개발자_{user.lastName}
+              {user.firstName}_최종
+            </ResumeTitle>
 
-          {fileName ? (
-            <UploadedArea>
-              <UploadIconWrapper
-                style={{ background: "#c8e6c9", color: "#2e7d32" }}
-              >
-                <CheckCircle size={24} />
-              </UploadIconWrapper>
-              <UploadSuccessMsg>이력서가 업로드되었습니다</UploadSuccessMsg>
-              <UploadSubMsg>아래에서 파일을 확인하세요</UploadSubMsg>
+            <InfoGrid>
+              <InfoBox>
+                <label>희망 직무</label>
+                <p>프론트엔드 개발 (React)</p>
+              </InfoBox>
+              <InfoBox>
+                <label>최근 수정일</label>
+                <p>2026. 02. 06</p>
+              </InfoBox>
+            </InfoGrid>
 
-              <UploadedFileCard>
-                <FileInfo>
-                  <FileIcon size={28} />
-                  <div>
-                    <FileName>{fileName}</FileName>
-                    <FileSize>{fileSize}</FileSize>
-                  </div>
-                </FileInfo>
-                <FileActions>
-                  <FileActionBtn onClick={handleFileReplace}>
-                    <RefreshCw size={16} /> 교체
-                  </FileActionBtn>
-                  <FileActionBtn delete onClick={handleFileDelete}>
-                    <Trash2 size={16} /> 삭제
-                  </FileActionBtn>
-                </FileActions>
-              </UploadedFileCard>
-            </UploadedArea>
-          ) : (
-            <UploadArea
-              onClick={() => document.getElementById("resume-file").click()}
-            >
-              <UploadIconWrapper>
-                <Upload size={24} />
-              </UploadIconWrapper>
-              <div>
-                <p style={{ fontWeight: 600, marginBottom: "4px" }}>
-                  이력서 PDF 파일을 여기로 끌어오거나
-                </p>
-                <p style={{ fontWeight: 600 }}>클릭해서 업로드하세요</p>
-                <p
-                  style={{
-                    fontSize: "0.85rem",
-                    color: "#999",
-                    marginTop: "8px",
-                  }}
-                >
-                  PDF 형식만 지원됩니다 (최대 10MB)
-                </p>
-              </div>
-            </UploadArea>
-          )}
+            <ButtonGroup>
+              <ActionButton primary onClick={() => navigate("/user/resumes")}>
+                <FolderOpen size={18} /> 전체 이력서
+              </ActionButton>
+            </ButtonGroup>
+          </ResumeBody>
         </Card>
 
-        {/* 3. Facilities Settings Card */}
+        {/* 3. 활동 현황 (통계) */}
         <Card>
-          <CardHeader>
-            <CardTitle>
-              <Settings size={20} /> 맞춤형 편의시설 및 근무 조건
-            </CardTitle>
-          </CardHeader>
+          <ActivityContainer>
+            <SectionTitle>내 활동 현황</SectionTitle>
+            <ActivityGrid>
+              <ActivityItem>
+                <IconCircle bg="#E3F2FD" color="#1976D2">
+                  <Send size={24} />
+                </IconCircle>
+                <Count>3</Count>
+                <Label>지원 완료</Label>
+              </ActivityItem>
 
-          <SectionGroup>
-            <SubTitle>
-              <Building size={18} /> 물리적 환경
-            </SubTitle>
-            <GridContainer>
-              <CheckItem checked={facilities.wheelchair}>
-                <input
-                  type="checkbox"
-                  checked={facilities.wheelchair}
-                  onChange={() => toggleCheck("wheelchair")}
-                />
-                <span>휠체어용 경사로</span>
-              </CheckItem>
-              <CheckItem checked={facilities.parking}>
-                <input
-                  type="checkbox"
-                  checked={facilities.parking}
-                  onChange={() => toggleCheck("parking")}
-                />
-                <span>장애인 전용 화장실</span>
-              </CheckItem>
-              <CheckItem checked={facilities.braille}>
-                <input
-                  type="checkbox"
-                  checked={facilities.braille}
-                  onChange={() => toggleCheck("braille")}
-                />
-                <span>점자 블록</span>
-              </CheckItem>
-              <CheckItem checked={facilities.elevator}>
-                <input
-                  type="checkbox"
-                  checked={facilities.elevator}
-                  onChange={() => toggleCheck("elevator")}
-                />
-                <span>엘리베이터</span>
-              </CheckItem>
-            </GridContainer>
-          </SectionGroup>
+              <ActivityItem>
+                <IconCircle bg="#FFF8E1" color="#FFA000">
+                  <Calendar size={24} />
+                </IconCircle>
+                <Count>1</Count>
+                <Label>면접 예정</Label>
+              </ActivityItem>
 
-          <hr
-            style={{
-              margin: "24px 0",
-              border: "none",
-              borderTop: "1px solid #eee",
-            }}
-          />
-
-          <SectionGroup>
-            <SubTitle>
-              <Monitor size={18} /> 업무 지원
-            </SubTitle>
-            <GridContainer>
-              <CheckItem checked={facilities.screenReader}>
-                <input
-                  type="checkbox"
-                  checked={facilities.screenReader}
-                  onChange={() => toggleCheck("screenReader")}
-                />
-                <span>스크린 리더 호환</span>
-              </CheckItem>
-              <CheckItem checked={facilities.signLang}>
-                <input
-                  type="checkbox"
-                  checked={facilities.signLang}
-                  onChange={() => toggleCheck("signLang")}
-                />
-                <span>수어 통역 지원</span>
-              </CheckItem>
-              <CheckItem checked={facilities.monitor}>
-                <input
-                  type="checkbox"
-                  checked={facilities.monitor}
-                  onChange={() => toggleCheck("monitor")}
-                />
-                <span>확대 모니터 제공</span>
-              </CheckItem>
-            </GridContainer>
-          </SectionGroup>
-
-          <hr
-            style={{
-              margin: "24px 0",
-              border: "none",
-              borderTop: "1px solid #eee",
-            }}
-          />
-
-          <SectionGroup>
-            <SubTitle>
-              <Briefcase size={18} /> 근무 형태
-            </SubTitle>
-            <GridContainer>
-              <CheckItem checked={facilities.remote}>
-                <input
-                  type="checkbox"
-                  checked={facilities.remote}
-                  onChange={() => toggleCheck("remote")}
-                />
-                <span>재택 근무 필수</span>
-              </CheckItem>
-              <CheckItem checked={facilities.flexible}>
-                <input
-                  type="checkbox"
-                  checked={facilities.flexible}
-                  onChange={() => toggleCheck("flexible")}
-                />
-                <span>시차 출퇴근제</span>
-              </CheckItem>
-              <CheckItem checked={facilities.shortTime}>
-                <input
-                  type="checkbox"
-                  checked={facilities.shortTime}
-                  onChange={() => toggleCheck("shortTime")}
-                />
-                <span>단시간 근로</span>
-              </CheckItem>
-            </GridContainer>
-          </SectionGroup>
+              <ActivityItem>
+                <IconCircle bg="#FCE4EC" color="#D81B60">
+                  <Bookmark size={24} />
+                </IconCircle>
+                <Count>5</Count>
+                <Label>스크랩 공고</Label>
+              </ActivityItem>
+            </ActivityGrid>
+          </ActivityContainer>
         </Card>
-
-        <SaveButton onClick={handleSave}>
-          <Save size={20} /> 설정 저장하기
-        </SaveButton>
       </Content>
     </Container>
   );
