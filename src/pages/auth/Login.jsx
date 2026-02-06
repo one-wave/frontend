@@ -711,10 +711,9 @@ function Login() {
                 <Label>인증코드</Label>
                 <Input
                   type="text"
-                  placeholder="담당자에게 받은 인증코드를 입력하세요 (companyId가 그대로 표시됩니다)"
+                  placeholder="담당자에게 받은 인증코드를 입력하세요"
                   value={authCode}
                   onChange={(e) => setAuthCode(e.target.value)}
-                  disabled={!selectedCompany}
                 />
                 {!selectedCompany && (
                   <HelperText>
