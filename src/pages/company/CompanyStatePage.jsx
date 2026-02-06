@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { TrendingUp, DollarSign, Award, Building2, Handshake, Shield, MapPin, Users, X, Briefcase } from "lucide-react";
 import CompanyLayout from "../../shared/CompanyHeader";
 import { getCompanyApiBaseUrl } from "../../api/Http";
+import { SkeletonBox } from "../../components/Skeleton";
 
 const StateBody = styled.div`
   padding: 40px;
@@ -744,7 +745,11 @@ function CompanyStatePage() {
             지역별 채용 공고 현황
           </SectionTitle>
           <MapContainer>
-            {loading && <LoadingText>지역 정보를 불러오는 중...</LoadingText>}
+            {loading && (
+              <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "750px" }}>
+                <SkeletonBox width="900px" height="750px" style={{ borderRadius: "12px" }} />
+              </div>
+            )}
             {error && <ErrorText>{error}</ErrorText>}
             
             {!loading && !error && (
@@ -867,7 +872,14 @@ function CompanyStatePage() {
                       </RegionStats>
 
                       {jobsLoading ? (
-                        <LoadingText>공고 정보를 불러오는 중...</LoadingText>
+                        <div>
+                          {[...Array(3)].map((_, idx) => (
+                            <div key={idx} style={{ padding: "16px", border: "1px solid #edf2f7", borderRadius: "8px", marginBottom: "12px" }}>
+                              <SkeletonBox width="80%" height="18px" marginBottom="8px" />
+                              <SkeletonBox width="60%" height="16px" />
+                            </div>
+                          ))}
+                        </div>
                       ) : filteredJobs.length > 0 ? (
                         <JobList>
                           {filteredJobs.map((job, idx) => (

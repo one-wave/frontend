@@ -7,6 +7,7 @@ import Header from "../../shared/Header";
 import HeroSection from "../../features/UserMainPage/HeroSection";
 import JobCard from "../../features/UserMainPage/JobCard";
 import WorkAssistantBanner from "../../features/UserMainPage/WorkAssistantBanner";
+import { GridSkeleton, JobCardSkeleton, SkeletonBox } from "../../components/Skeleton";
 
 // --- Styled Components ---
 
@@ -207,10 +208,30 @@ function UserMainPage() {
           </CountHeader>
 
           {isLoading && (
-            <div style={{ textAlign: "center", padding: "60px 0", color: "#999" }}>
-              <div style={{ fontSize: "1.2rem", marginBottom: "10px" }}>로딩 중...</div>
-              <div style={{ fontSize: "0.9rem" }}>채용 공고를 불러오고 있습니다</div>
-            </div>
+            <GridSkeleton>
+              {[...Array(6)].map((_, idx) => (
+                <JobCardSkeleton key={idx}>
+                  <div style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
+                    <SkeletonBox width="44px" height="44px" style={{ borderRadius: "8px" }} />
+                    <div style={{ flex: 1 }}>
+                      <SkeletonBox width="60%" height="14px" marginBottom="8px" />
+                      <SkeletonBox width="80%" height="20px" marginBottom="12px" />
+                    </div>
+                  </div>
+                  <SkeletonBox width="100%" height="14px" marginBottom="8px" />
+                  <SkeletonBox width="40%" height="16px" marginBottom="12px" />
+                  <div style={{ display: "flex", gap: "6px", marginBottom: "20px" }}>
+                    <SkeletonBox width="60px" height="24px" style={{ borderRadius: "4px" }} />
+                    <SkeletonBox width="60px" height="24px" style={{ borderRadius: "4px" }} />
+                    <SkeletonBox width="60px" height="24px" style={{ borderRadius: "4px" }} />
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "auto" }}>
+                    <SkeletonBox width="80px" height="20px" />
+                    <SkeletonBox width="100px" height="36px" style={{ borderRadius: "6px" }} />
+                  </div>
+                </JobCardSkeleton>
+              ))}
+            </GridSkeleton>
           )}
 
           {isError && (

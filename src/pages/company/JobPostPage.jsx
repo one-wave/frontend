@@ -2,6 +2,7 @@ import styled from "@emotion/styled";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getCompanyApiBaseUrl } from "../../api/Http";
+import { SkeletonBox, JobCardSkeleton } from "../../components/Skeleton";
 import {
   FileText,
   Briefcase,
@@ -457,9 +458,14 @@ function JobPostPage() {
                   <h3>우리 회사 공고 목록</h3>
                 </SectionHeader>
                 {jobsLoading && (
-                  <p style={{ fontSize: "0.9rem", color: "#718096" }}>
-                    공고 목록을 불러오는 중입니다...
-                  </p>
+                  <div>
+                    {[...Array(3)].map((_, idx) => (
+                      <JobCardSkeleton key={idx} style={{ marginBottom: "10px" }}>
+                        <SkeletonBox width="80%" height="18px" marginBottom="8px" />
+                        <SkeletonBox width="60%" height="14px" />
+                      </JobCardSkeleton>
+                    ))}
+                  </div>
                 )}
                 {jobsError && (
                   <p style={{ fontSize: "0.9rem", color: "#e53e3e" }}>

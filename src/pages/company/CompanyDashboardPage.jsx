@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { FileText, Users, ChevronRight, Briefcase, ChevronDown, Mail, Phone, Calendar } from "lucide-react";
 import CompanyLayout from "../../shared/CompanyHeader";
 import { getCompanyApiBaseUrl } from "../../api/Http";
+import { SkeletonBox, SkeletonCircle, ListItemSkeleton, JobCardSkeleton } from "../../components/Skeleton";
 
 const DashboardBody = styled.div`
   padding: 40px;
@@ -700,7 +701,34 @@ function CompanyDashboardPage() {
             </button>
           </SectionHeader>
 
-          {loading && <LoadingText>공고 목록을 불러오는 중입니다...</LoadingText>}
+          {loading && (
+            <>
+              <JobCardSkeleton style={{ marginBottom: "24px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "24px 32px", borderBottom: "2px solid #edf2f7" }}>
+                  <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+                    <SkeletonBox width="20px" height="20px" />
+                    <div>
+                      <SkeletonBox width="200px" height="20px" marginBottom="8px" />
+                      <SkeletonBox width="150px" height="14px" />
+                    </div>
+                  </div>
+                  <SkeletonBox width="100px" height="20px" />
+                </div>
+              </JobCardSkeleton>
+              <JobCardSkeleton style={{ marginBottom: "24px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "24px 32px", borderBottom: "2px solid #edf2f7" }}>
+                  <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+                    <SkeletonBox width="20px" height="20px" />
+                    <div>
+                      <SkeletonBox width="200px" height="20px" marginBottom="8px" />
+                      <SkeletonBox width="150px" height="14px" />
+                    </div>
+                  </div>
+                  <SkeletonBox width="100px" height="20px" />
+                </div>
+              </JobCardSkeleton>
+            </>
+          )}
           {error && <ErrorText>{error}</ErrorText>}
           {!loading && !error && jobs.length === 0 && (
             <EmptyText>등록된 공고가 없습니다.</EmptyText>
@@ -739,9 +767,29 @@ function CompanyDashboardPage() {
                       {isExpanded && (
                         <>
                           {loadingApplicants[job.job_post_id] ? (
-                            <LoadingText style={{ padding: "40px" }}>
-                              지원자 정보를 불러오는 중...
-                            </LoadingText>
+                            <>
+                              <ListHeader>
+                                <div>이름</div>
+                                <div>지원 직무</div>
+                                <div>장애 유형</div>
+                                <div>지원 날짜</div>
+                                <div style={{ textAlign: "center" }}>상태</div>
+                              </ListHeader>
+                              {[...Array(3)].map((_, idx) => (
+                                <ListItemSkeleton key={idx}>
+                                  <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                                    <SkeletonCircle size="36px" />
+                                    <SkeletonBox width="60px" height="16px" />
+                                  </div>
+                                  <SkeletonBox width="100px" height="16px" />
+                                  <SkeletonBox width="80px" height="16px" />
+                                  <SkeletonBox width="100px" height="16px" />
+                                  <div style={{ textAlign: "center" }}>
+                                    <SkeletonBox width="80px" height="28px" style={{ borderRadius: "20px", margin: "0 auto" }} />
+                                  </div>
+                                </ListItemSkeleton>
+                              ))}
+                            </>
                           ) : jobApplicants.length > 0 ? (
                             <>
             <ListHeader>

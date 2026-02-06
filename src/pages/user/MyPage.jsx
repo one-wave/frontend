@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { getProfile, getResumes } from "../../api/Auth";
 import { api } from "../../api/Http";
 import { getCompanyApiBaseUrl } from "../../api/Http";
+import { ProfileCardSkeleton, SkeletonBox, SkeletonCircle, GridSkeleton as SkeletonGrid } from "../../components/Skeleton";
 import {
   User,
   Crown,
@@ -537,9 +538,70 @@ function MyPage() {
 
   if (loading) {
     return (
-      <div style={{ padding: "100px", textAlign: "center", color: "#666" }}>
-        정보를 불러오는 중입니다...
-      </div>
+      <Container>
+        <Header />
+        <Content>
+          {/* 프로필 스켈레톤 */}
+          <ProfileCardSkeleton>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+              <div style={{ display: "flex", gap: "24px", alignItems: "center" }}>
+                <SkeletonCircle size="80px" />
+                <div>
+                  <SkeletonBox width="120px" height="24px" marginBottom="12px" />
+                  <div style={{ display: "flex", gap: "8px", marginTop: "8px" }}>
+                    <SkeletonBox width="150px" height="32px" style={{ borderRadius: "6px" }} />
+                    <SkeletonBox width="120px" height="32px" style={{ borderRadius: "6px" }} />
+                    <SkeletonBox width="100px" height="32px" style={{ borderRadius: "6px" }} />
+                  </div>
+                </div>
+              </div>
+              <SkeletonBox width="80px" height="36px" style={{ borderRadius: "8px" }} />
+            </div>
+            <hr style={{ border: "none", borderTop: "1px solid #eee", margin: "0" }} />
+            <div>
+              <SkeletonBox width="200px" height="20px" marginBottom="16px" />
+              <SkeletonGrid style={{ gridTemplateColumns: "repeat(2, 1fr)", gap: "12px" }}>
+                {[...Array(6)].map((_, idx) => (
+                  <div key={idx} style={{ padding: "16px", background: "#f9f9f9", borderRadius: "10px" }}>
+                    <SkeletonBox width="100px" height="14px" marginBottom="8px" />
+                    <SkeletonBox width="80%" height="16px" />
+                  </div>
+                ))}
+              </SkeletonGrid>
+            </div>
+          </ProfileCardSkeleton>
+
+          {/* 이력서 스켈레톤 */}
+          <ProfileCardSkeleton>
+            <div style={{ background: "#1b3a6b", padding: "18px 24px", borderRadius: "12px 12px 0 0", margin: "-30px -30px 0 -30px" }}>
+              <SkeletonBox width="150px" height="20px" style={{ background: "rgba(255,255,255,0.3)" }} />
+            </div>
+            <SkeletonBox width="200px" height="24px" marginBottom="20px" />
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "30px" }}>
+              <SkeletonBox width="100%" height="60px" style={{ borderRadius: "8px" }} />
+              <SkeletonBox width="100%" height="60px" style={{ borderRadius: "8px" }} />
+            </div>
+            <div style={{ display: "flex", gap: "12px" }}>
+              <SkeletonBox width="50%" height="48px" style={{ borderRadius: "8px" }} />
+              <SkeletonBox width="50%" height="48px" style={{ borderRadius: "8px" }} />
+            </div>
+          </ProfileCardSkeleton>
+
+          {/* 활동 현황 스켈레톤 */}
+          <ProfileCardSkeleton>
+            <SkeletonBox width="120px" height="20px" marginBottom="24px" />
+            <SkeletonGrid style={{ gridTemplateColumns: "repeat(3, 1fr)", gap: "20px" }}>
+              {[...Array(3)].map((_, idx) => (
+                <div key={idx} style={{ padding: "24px", border: "1px solid #eee", borderRadius: "12px", textAlign: "center" }}>
+                  <SkeletonCircle size="50px" style={{ margin: "0 auto 12px" }} />
+                  <SkeletonBox width="40px" height="24px" style={{ margin: "0 auto 8px" }} />
+                  <SkeletonBox width="80px" height="16px" style={{ margin: "0 auto" }} />
+                </div>
+              ))}
+            </SkeletonGrid>
+          </ProfileCardSkeleton>
+        </Content>
+      </Container>
     );
   }
 
