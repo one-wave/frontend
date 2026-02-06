@@ -1,5 +1,20 @@
 import axios from "axios";
 
+/** JWT accessToken payload에서 sub(userId) 추출 */
+export function getUserIdFromToken(accessToken) {
+  if (!accessToken || typeof accessToken !== "string") return null;
+  try {
+    const parts = accessToken.split(".");
+    if (parts.length !== 3) return null;
+    const base64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+    const padded = base64 + "=".repeat((4 - (base64.length % 4)) % 4);
+    const payload = JSON.parse(atob(padded));
+    return payload.sub ?? null;
+  } catch {
+    return null;
+  }
+}
+
 const BASE_URL =
   import.meta.env.VITE_API_BASE_URL ||
   "https://barrierfree-applicant-server-production.up.railway.app/api";
@@ -67,6 +82,8 @@ api.interceptors.response.use(
         const { accessToken: newAccessToken, refreshToken: newRefreshToken } = data;
         localStorage.setItem("accessToken", newAccessToken);
         localStorage.setItem("refreshToken", newRefreshToken);
+        const userId = getUserIdFromToken(newAccessToken);
+        if (userId) localStorage.setItem("userId", userId);
 
         // 실패했던 요청의 헤더를 새 토큰으로 교체하고 다시 시도
         originalRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;
@@ -78,6 +95,7 @@ api.interceptors.response.use(
         localStorage.removeItem("accessToken");
         localStorage.removeItem("refreshToken");
         localStorage.removeItem("userType");
+        localStorage.removeItem("userId");
         
         // 로그인 페이지로 이동 (window.location 사용)
         window.location.href = "/login"; 

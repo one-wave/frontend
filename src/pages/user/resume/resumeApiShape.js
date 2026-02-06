@@ -96,17 +96,22 @@ export const EMPTY_LANGUAGE = {
   acquiredDate: "",
 };
 
-/** degree / graduationStatus 셀렉트 옵션 (API enum 참고) */
+/** 백엔드 EducLevel enum */
 export const DEGREE_OPTIONS = [
-  { value: "ASSOCIATE", label: "전문학사" },
-  { value: "BACHELOR", label: "학사" },
+  { value: "UNDER_HIGH_SCHOOL", label: "중졸이하" },
+  { value: "HIGH_SCHOOL", label: "고졸" },
+  { value: "ASSOCIATE", label: "초대졸" },
+  { value: "BACHELOR", label: "대졸" },
   { value: "MASTER", label: "석사" },
   { value: "DOCTOR", label: "박사" },
 ];
+/** 백엔드 GraduationStatus enum */
 export const GRADUATION_STATUS_OPTIONS = [
-  { value: "IN_PROGRESS", label: "재학" },
+  { value: "ENROLLED", label: "재학중" },
   { value: "GRADUATED", label: "졸업" },
-  { value: "LEAVE", label: "휴학" },
+  { value: "ON_LEAVE", label: "휴학" },
+  { value: "DROPPED_OUT", label: "중퇴" },
+  { value: "EXPECTED", label: "졸업예정" },
 ];
 
 /**
@@ -126,6 +131,79 @@ export function responseToUpdateShape(resume) {
     ),
     awards: (resume.awards ?? []).map(({ awardId, ...rest }) => rest),
     languages: (resume.languages ?? []).map(({ languageId, ...rest }) => rest),
-    representative: !!resume.representative,
+    representative: !!(resume.isRepresentative ?? resume.representative),
+  };
+}
+
+/** 날짜 문자열 → YYYY-MM-DD 또는 null (API용) */
+function toDate(val) {
+  const s = val && String(val).trim();
+  return s && s.length >= 10 ? s.slice(0, 10) : null;
+}
+
+/** 폼 데이터 → 백엔드 ResumeRequest (POST/PUT 공통) */
+export function formToPayload(formData) {
+  const educations = (formData.educations ?? [])
+    .filter((e) => (e.schoolName ?? "").trim() !== "")
+    .map((e) => ({
+      schoolName: (e.schoolName ?? "").trim(),
+      major: (e.major ?? "").trim() || null,
+      degree: e.degree ?? "BACHELOR",
+      enrollmentDate: toDate(e.enrollmentDate),
+      graduationDate: toDate(e.graduationDate),
+      graduationStatus: e.graduationStatus ?? "GRADUATED",
+    }));
+
+  const careers = (formData.careers ?? [])
+    .filter((c) => {
+      const company = (c.companyName ?? "").trim();
+      const start = toDate(c.startDate);
+      return company !== "" && start != null;
+    })
+    .map((c) => ({
+      companyName: (c.companyName ?? "").trim(),
+      department: (c.department ?? "").trim() || null,
+      position: (c.position ?? "").trim() || null,
+      startDate: toDate(c.startDate) || c.startDate?.slice(0, 10),
+      endDate: toDate(c.endDate),
+      description: (c.description ?? "").trim() || null,
+      isCurrentJob: !!c.currentJob,
+    }));
+
+  const certificates = (formData.certificates ?? [])
+    .filter((c) => (c.certificateName ?? "").trim() !== "")
+    .map((c) => ({
+      certificateName: (c.certificateName ?? "").trim(),
+      issuingOrganization: (c.issuingOrganization ?? "").trim() || null,
+      acquiredDate: toDate(c.acquiredDate),
+    }));
+
+  const awards = (formData.awards ?? [])
+    .filter((a) => (a.awardName ?? "").trim() !== "")
+    .map((a) => ({
+      awardName: (a.awardName ?? "").trim(),
+      issuingOrganization: (a.issuingOrganization ?? "").trim() || null,
+      awardDate: toDate(a.awardDate),
+      description: (a.description ?? "").trim() || null,
+    }));
+
+  const languages = (formData.languages ?? [])
+    .filter((l) => (l.languageName ?? "").trim() !== "")
+    .map((l) => ({
+      languageName: (l.languageName ?? "").trim(),
+      testName: (l.testName ?? "").trim() || null,
+      score: (l.score ?? "").trim() || null,
+      grade: (l.grade ?? "").trim() || null,
+      acquiredDate: toDate(l.acquiredDate),
+    }));
+
+  return {
+    resumeTitle: (formData.resumeTitle ?? "").trim() || "제목 없음",
+    isRepresentative: !!formData.representative,
+    educations,
+    careers,
+    certificates,
+    awards,
+    languages,
   };
 }

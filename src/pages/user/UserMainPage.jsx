@@ -73,20 +73,23 @@ function UserMainPage() {
   const [searchKeyword, setSearchKeyword] = useState("");
   const [sortBy, setSortBy] = useState("RECENT");
 
-  // API로 채용 공고 데이터 가져오기
+  // 백엔드 GET /api/job-posts — userId는 UUID일 때만 전달 (아니면 400), sortBy는 RECENT|SALARY_HIGH|MATCH_SCORE만
   const { data: jobPostsData, isLoading, isError } = useQuery({
     queryKey: ["jobPosts", { searchKeyword, sortBy }],
     queryFn: async () => {
-      const userId = localStorage.getItem("userId") || "";
-      
+      const rawUserId = localStorage.getItem("userId");
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      const userId = rawUserId && uuidRegex.test(rawUserId) ? rawUserId : undefined;
+
       const params = {
         ...(userId && { userId }),
-        ...(searchKeyword && { keyword: searchKeyword }),
-        ...(sortBy && { sortBy }),
+        ...(searchKeyword?.trim() && { keyword: searchKeyword.trim() }),
+        sortBy: sortBy === "SALARY_LOW" ? "RECENT" : sortBy,
       };
-      
+
       const response = await api.get("/job-posts", { params });
-      return response.data;
+      const body = response.data;
+      return Array.isArray(body) ? body : body?.content ?? [];
     },
     staleTime: 1000 * 60 * 5, // 5분
   });
@@ -112,7 +115,6 @@ function UserMainPage() {
             <SortDropdown value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
               <option value="RECENT">최신순</option>
               <option value="SALARY_HIGH">급여높은순</option>
-              <option value="SALARY_LOW">급여낮은순</option>
               <option value="MATCH_SCORE">매칭점수순</option>
             </SortDropdown>
           </CountHeader>

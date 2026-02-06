@@ -1,8 +1,9 @@
 import styled from "@emotion/styled";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, FileText, ChevronRight, Crown, Plus } from "lucide-react";
 import Header from "../../../shared/Header";
-import { MOCK_RESUMES } from "./mockResumes";
+import { getResumes } from "../../../api/Auth";
 
 const Container = styled.div`
   width: 100%;
@@ -153,6 +154,28 @@ const Chevron = styled(ChevronRight)`
   flex-shrink: 0;
 `;
 
+const EmptyMessage = styled.p`
+  text-align: center;
+  color: #8898aa;
+  font-size: 1rem;
+  padding: 48px 24px;
+  margin: 0;
+`;
+
+const LoadingMessage = styled.p`
+  text-align: center;
+  color: #666;
+  padding: 48px 24px;
+  margin: 0;
+`;
+
+const ErrorMessage = styled.p`
+  color: #dc2626;
+  font-size: 0.95rem;
+  padding: 16px 0;
+  margin: 0;
+`;
+
 function formatDate(iso) {
   if (!iso) return "-";
   const d = new Date(iso);
@@ -165,6 +188,30 @@ function formatDate(iso) {
 
 function ResumeListPage() {
   const navigate = useNavigate();
+  const [resumes, setResumes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const { data } = await getResumes();
+        if (!cancelled) setResumes(Array.isArray(data) ? data : []);
+      } catch (err) {
+        if (!cancelled) {
+          setError(err.response?.status === 401 ? "로그인이 필요합니다." : "이력서 목록을 불러올 수 없습니다.");
+          setResumes([]);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    load();
+    return () => { cancelled = true; };
+  }, []);
 
   return (
     <Container>
@@ -179,36 +226,41 @@ function ResumeListPage() {
             <Plus size={18} /> 이력서 추가
           </AddBtn>
         </TitleRow>
-        <List>
-          {MOCK_RESUMES.map((resume) => (
-            <ListItem key={resume.resumeId}>
-              <ItemButton
-                type="button"
-                onClick={() =>
-                  navigate(`/user/resumes/${resume.resumeId}`)
-                }
-              >
-                <IconWrap>
-                  <FileText size={24} />
-                </IconWrap>
-                <ItemText>
-                  <ItemTitle>
-                    {resume.resumeTitle}
-                    {resume.representative && (
-                      <RepresentativeBadge>
-                        <Crown size={12} /> 대표
-                      </RepresentativeBadge>
-                    )}
-                  </ItemTitle>
-                  <ItemMeta>
-                    최종 수정 {formatDate(resume.updatedAt)}
-                  </ItemMeta>
-                </ItemText>
-                <Chevron size={20} />
-              </ItemButton>
-            </ListItem>
-          ))}
-        </List>
+        {error && <ErrorMessage>{error}</ErrorMessage>}
+        {loading ? (
+          <LoadingMessage>이력서 목록을 불러오는 중입니다...</LoadingMessage>
+        ) : resumes.length === 0 ? (
+          <EmptyMessage>등록된 이력서가 없습니다. 이력서를 추가해보세요.</EmptyMessage>
+        ) : (
+          <List>
+            {resumes.map((resume) => (
+              <ListItem key={resume.resumeId}>
+                <ItemButton
+                  type="button"
+                  onClick={() => navigate(`/user/resumes/${resume.resumeId}`)}
+                >
+                  <IconWrap>
+                    <FileText size={24} />
+                  </IconWrap>
+                  <ItemText>
+                    <ItemTitle>
+                      {resume.resumeTitle || "제목 없음"}
+                      {resume.isRepresentative && (
+                        <RepresentativeBadge>
+                          <Crown size={12} /> 대표
+                        </RepresentativeBadge>
+                      )}
+                    </ItemTitle>
+                    <ItemMeta>
+                      최종 수정 {formatDate(resume.updatedAt)}
+                    </ItemMeta>
+                  </ItemText>
+                  <Chevron size={20} />
+                </ItemButton>
+              </ListItem>
+            ))}
+          </List>
+        )}
       </Content>
     </Container>
   );

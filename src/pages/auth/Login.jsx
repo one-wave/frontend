@@ -2,7 +2,7 @@ import styled from '@emotion/styled';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User } from 'lucide-react';
-import { api } from '../../api/Http';
+import { api, getUserIdFromToken } from '../../api/Http';
 
 const Container = styled.div`
   display: flex;
@@ -380,7 +380,11 @@ function Login() {
         });
         const accessToken = data?.accessToken ?? data?.access_token;
         const refreshToken = data?.refreshToken ?? data?.refresh_token;
-        if (accessToken) localStorage.setItem('accessToken', accessToken);
+        if (accessToken) {
+          localStorage.setItem('accessToken', accessToken);
+          const userId = getUserIdFromToken(accessToken);
+          if (userId) localStorage.setItem('userId', userId);
+        }
         if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
         navigate('/');
       } catch (error) {

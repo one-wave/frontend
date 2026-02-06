@@ -1,4 +1,5 @@
 import styled from "@emotion/styled";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeft,
@@ -12,7 +13,7 @@ import {
   Crown,
 } from "lucide-react";
 import Header from "../../../shared/Header";
-import { MOCK_RESUMES } from "./mockResumes";
+import { getResume, deleteResume } from "../../../api/Auth";
 
 const Container = styled.div`
   width: 100%;
@@ -182,6 +183,12 @@ const ErrorMsg = styled.p`
   padding: 40px 20px;
 `;
 
+const LoadingMsg = styled.p`
+  text-align: center;
+  color: #666;
+  padding: 40px 20px;
+`;
+
 function formatDate(dateStr) {
   if (!dateStr) return "-";
   return new Date(dateStr).toLocaleDateString("ko-KR", {
@@ -194,16 +201,58 @@ function formatDate(dateStr) {
 function ResumeDetailPage() {
   const navigate = useNavigate();
   const { resumeId } = useParams();
-  const resume = MOCK_RESUMES.find((r) => r.resumeId === resumeId);
+  const [resume, setResume] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
-  const handleDelete = () => {
-    if (window.confirm("이 이력서를 삭제하시겠습니까?")) {
-      // 백 연동 전: 목록으로 이동만
+  useEffect(() => {
+    if (!resumeId) {
+      setLoading(false);
+      setError("이력서 ID가 없습니다.");
+      return;
+    }
+    let cancelled = false;
+    const load = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const { data } = await getResume(resumeId);
+        if (!cancelled) setResume(data);
+      } catch (err) {
+        if (!cancelled) {
+          setError(
+            err.response?.status === 404 || err.response?.status === 403
+              ? "이력서를 찾을 수 없습니다."
+              : err.response?.status === 401
+                ? "로그인이 필요합니다."
+                : "이력서를 불러올 수 없습니다."
+          );
+          setResume(null);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    load();
+    return () => { cancelled = true; };
+  }, [resumeId]);
+
+  const handleDelete = async () => {
+    if (!resumeId || !window.confirm("이 이력서를 삭제하시겠습니까?")) return;
+    setDeleting(true);
+    try {
+      await deleteResume(resumeId);
       navigate("/user/resumes");
+    } catch (err) {
+      const msg = err.response?.data?.message ?? err.response?.data?.error;
+      window.alert(typeof msg === "string" ? msg : "삭제에 실패했습니다.");
+    } finally {
+      setDeleting(false);
     }
   };
 
-  if (!resume) {
+  if (loading) {
     return (
       <Container>
         <Header />
@@ -211,7 +260,21 @@ function ResumeDetailPage() {
           <BackBtn type="button" onClick={() => navigate("/user/resumes")}>
             <ArrowLeft size={18} /> 목록으로
           </BackBtn>
-          <ErrorMsg>이력서를 찾을 수 없습니다.</ErrorMsg>
+          <LoadingMsg>이력서를 불러오는 중입니다...</LoadingMsg>
+        </Content>
+      </Container>
+    );
+  }
+
+  if (error || !resume) {
+    return (
+      <Container>
+        <Header />
+        <Content>
+          <BackBtn type="button" onClick={() => navigate("/user/resumes")}>
+            <ArrowLeft size={18} /> 목록으로
+          </BackBtn>
+          <ErrorMsg>{error || "이력서를 찾을 수 없습니다."}</ErrorMsg>
         </Content>
       </Container>
     );
@@ -228,7 +291,7 @@ function ResumeDetailPage() {
         <TitleRow>
           <ResumeTitle>
             {resume.resumeTitle}
-            {resume.representative && (
+            {resume.isRepresentative && (
               <RepresentativeBadge>
                 <Crown size={14} /> 대표 이력서
               </RepresentativeBadge>
@@ -244,8 +307,8 @@ function ResumeDetailPage() {
             >
               <Edit3 size={18} /> 수정
             </ActionButton>
-            <ActionButton type="button" onClick={handleDelete}>
-              <Trash2 size={18} /> 삭제
+            <ActionButton type="button" onClick={handleDelete} disabled={deleting}>
+              <Trash2 size={18} /> {deleting ? "삭제 중..." : "삭제"}
             </ActionButton>
           </ButtonGroup>
         </TitleRow>
@@ -256,7 +319,7 @@ function ResumeDetailPage() {
         </Meta>
 
         <Card>
-          {resume.educations?.length > 0 && (
+          {(resume.educations?.length ?? 0) > 0 && (
             <Section>
               <SectionTitle>
                 <GraduationCap size={20} /> 학력
@@ -286,7 +349,7 @@ function ResumeDetailPage() {
                 <Item key={c.careerId}>
                   <ItemTitle>
                     {c.companyName}
-                    {c.currentJob && " (재직 중)"}
+                    {c.isCurrentJob && " (재직 중)"}
                   </ItemTitle>
                   <ItemSub>
                     {c.department} · {c.position}
