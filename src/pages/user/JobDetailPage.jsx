@@ -1,6 +1,6 @@
 import styled from "@emotion/styled";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { getResumes } from "../../api/Auth";
 import { api } from "../../api/Http";
 import Header from "../../shared/Header";
@@ -9,7 +9,6 @@ import {
   MapPin,
   Clock,
   Briefcase,
-  Volume2,
   Bookmark,
   ChevronLeft,
   Bot,
@@ -60,27 +59,6 @@ const JobHeaderCard = styled.div`
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   margin-bottom: 20px;
   position: relative;
-`;
-
-const TTSButton = styled.button`
-  position: absolute;
-  top: 30px;
-  right: 30px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  border: 1px solid #2e7d32;
-  background-color: white;
-  color: #2e7d32;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-
-  &:hover {
-    background-color: #e8f5e9;
-  }
 `;
 
 const CompanyInfo = styled.div`
@@ -324,14 +302,46 @@ const ApplyButton = styled.button`
   }
 `;
 
+// 로컬 스토리지에서 스크랩 목록 가져오기
+const getScrapedJobs = () => {
+  try {
+    const scraped = localStorage.getItem("scrapedJobs");
+    return scraped ? JSON.parse(scraped) : [];
+  } catch {
+    return [];
+  }
+};
+
+// 스크랩 목록 저장하기
+const saveScrapedJobs = (jobs) => {
+  try {
+    localStorage.setItem("scrapedJobs", JSON.stringify(jobs));
+    // 스크랩 개수 변경 이벤트 발생 (MyPage에서 감지)
+    window.dispatchEvent(new Event("scrapedJobsUpdated"));
+  } catch (err) {
+    console.error("스크랩 저장 실패:", err);
+  }
+};
+
 function JobDetailPage() {
   const navigate = useNavigate();
   const { jobId } = useParams();
   const location = useLocation();
-  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isScraped, setIsScraped] = useState(false);
 
   // UserMainPage에서 전달받은 데이터
   const { jobData, matchScore } = location.state || {};
+
+  // 컴포넌트 마운트 시 스크랩 상태 확인
+  useEffect(() => {
+    if (jobId) {
+      const scrapedJobs = getScrapedJobs();
+      const isJobScraped = scrapedJobs.some(
+        (job) => job.jobPostId === jobId
+      );
+      setIsScraped(isJobScraped);
+    }
+  }, [jobId]);
   
   // 데이터가 없으면 (직접 URL 접근) API 호출 필요
   if (!jobData) {
@@ -358,9 +368,36 @@ function JobDetailPage() {
     deadline = daysLeft > 0 ? `D-${daysLeft}` : "마감";
   }
 
-  const handleTTS = () => {
-    setIsSpeaking(!isSpeaking);
-    alert(isSpeaking ? "TTS 중지" : "공고 내용을 읽어드립니다.");
+  // 스크랩 토글
+  const handleScrap = () => {
+    if (!jobId || !jobData) return;
+
+    const scrapedJobs = getScrapedJobs();
+    const jobIndex = scrapedJobs.findIndex(
+      (job) => job.jobPostId === jobId
+    );
+
+    if (jobIndex > -1) {
+      // 이미 스크랩된 경우 제거
+      scrapedJobs.splice(jobIndex, 1);
+      setIsScraped(false);
+      alert("스크랩이 해제되었습니다.");
+    } else {
+      // 스크랩 추가
+      scrapedJobs.push({
+        jobPostId: jobId,
+        jobNm: jobData.jobNm || "공고 제목 없음",
+        companyName: jobData.companyName || "회사명 없음",
+        jobLocation: jobData.jobLocation || "",
+        salary: jobData.salary || 0,
+        salaryType: jobData.salaryType || "",
+        scrapedAt: new Date().toISOString(),
+      });
+      setIsScraped(true);
+      alert("스크랩되었습니다.");
+    }
+
+    saveScrapedJobs(scrapedJobs);
   };
 
   const handleApply = async () => {
@@ -446,16 +483,6 @@ function JobDetailPage() {
               <Badge type="blue">🎯 매칭점수 {matchScore}점</Badge>
             )}
           </BadgeContainer>
-
-          <TTSButton onClick={handleTTS}>
-            {isSpeaking ? (
-              <>🔇 읽기 중지</>
-            ) : (
-              <>
-                <Volume2 size={16} /> 이 공고 듣기
-              </>
-            )}
-          </TTSButton>
         </JobHeaderCard>
 
         {/* 3. 채용 요약 (Grid) */}
@@ -493,8 +520,9 @@ function JobDetailPage() {
 
         {/* 하단 액션 버튼 */}
         <ActionContainer>
-          <ScrapButton onClick={() => alert("스크랩 되었습니다.")}>
-            <Bookmark size={20} /> 스크랩
+          <ScrapButton onClick={handleScrap}>
+            <Bookmark size={20} fill={isScraped ? "currentColor" : "none"} /> 
+            {isScraped ? "스크랩 해제" : "스크랩"}
           </ScrapButton>
           <ApplyButton onClick={handleApply}>
             지원하기
