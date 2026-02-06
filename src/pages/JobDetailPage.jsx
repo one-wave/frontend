@@ -1,19 +1,11 @@
 import styled from '@emotion/styled';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useState } from 'react';
+import Header from '../shared/Header';
 
 const Container = styled.div`
   min-height: 100vh;
   background-color: #f8f9fa;
-`;
-
-const Header = styled.header`
-  background-color: white;
-  padding: 20px 40px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
 `;
 
 const Logo = styled.h1`
@@ -173,10 +165,7 @@ function JobDetailPage() {
 
   return (
     <Container>
-      <Header>
-        <Logo onClick={() => navigate('/')}>잡케어</Logo>
-        <BackButton onClick={() => navigate(-1)}>← 목록으로</BackButton>
-      </Header>
+      <Header/>
 
       <Content>
         <JobHeader>
