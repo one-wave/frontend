@@ -336,7 +336,6 @@ function JobDetailPage() {
   // 데이터가 없으면 (직접 URL 접근) API 호출 필요
   if (!jobData) {
     // TODO: API로 jobId를 사용해 데이터 가져오기
-    console.log('JobId for future API call:', jobId);
   }
 
   // 급여 표시
@@ -379,15 +378,10 @@ function JobDetailPage() {
         return;
       }
       
-      console.log("지원할 이력서 ID:", representativeResume.resumeId);
-      console.log("공고 ID (jobId):", jobId);
-      
       const payload = {
         jobPostId: jobId,
         resumeId: representativeResume.resumeId
       };
-      
-      console.log("전송할 데이터:", payload);
       
       // 3. 지원하기 POST 요청
       await api.post("/applications", payload);
@@ -398,10 +392,13 @@ function JobDetailPage() {
       
     } catch (error) {
       console.error("지원 실패:", error);
+      console.error("에러 응답 데이터:", error.response?.data);
+      console.error("에러 상태 코드:", error.response?.status);
+      
       if (error.response?.status === 401) {
         alert("로그인이 필요합니다.");
         navigate("/login");
-      } else if (error.response?.status === 409) {
+      } else if (error.response?.status === 409 || error.response?.status === 500) {
         alert("이미 지원한 공고입니다.");
       } else {
         alert("지원에 실패했습니다. 다시 시도해주세요.");

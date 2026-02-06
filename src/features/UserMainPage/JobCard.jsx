@@ -139,8 +139,12 @@ function JobCard({ item, onClick }) {
     urgent = diffDays <= 3 && diffDays > 0;
   }
 
-  // 태그 생성
-  const tags = [item.empType, item.reqEduc, item.reqCareer].filter(Boolean);
+  // 태그 생성 - 원본 필드명과 함께 저장
+  const tagData = [
+    { label: item.empType, field: 'empType' },
+    { label: item.reqEduc, field: 'reqEduc' },
+    { label: item.reqCareer, field: 'reqCareer' }
+  ].filter(t => t.label);
 
   return (
     <Card onClick={onClick}>
@@ -185,11 +189,11 @@ function JobCard({ item, onClick }) {
         </div>
 
         <TagsWrapper>
-          {tags.map((tag) => {
-            const style = getTagStyle(tag);
+          {tagData.map((tag) => {
+            const style = getTagStyle(tag.label);
             return (
-              <TagSpan key={tag} bg={style.bg} color={style.color}>
-                #{tag}
+              <TagSpan key={`${tag.field}-${tag.label}`} bg={style.bg} color={style.color}>
+                #{tag.label}
               </TagSpan>
             );
           })}
