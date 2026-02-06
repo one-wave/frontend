@@ -1,6 +1,8 @@
 import styled from "@emotion/styled";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useState } from "react";
+import { getResumes } from "../../api/Auth";
+import { api } from "../../api/Http";
 import Header from "../../shared/Header";
 import {
   Building2,
@@ -362,6 +364,46 @@ function JobDetailPage() {
     alert(isSpeaking ? "TTS 중지" : "공고 내용을 읽어드립니다.");
   };
 
+  const handleApply = async () => {
+    try {
+      // 1. 이력서 목록 조회
+      const { data: resumes } = await getResumes();
+      const resumeList = Array.isArray(resumes) ? resumes : [];
+      
+      // 2. 대표 이력서 찾기
+      const representativeResume = resumeList.find(r => r.isRepresentative) || resumeList[0];
+      
+      if (!representativeResume) {
+        alert("이력서가 없습니다. 먼저 이력서를 작성해주세요.");
+        navigate("/user/resumes/create");
+        return;
+      }
+      
+      console.log("지원할 이력서 ID:", representativeResume.resumeId);
+      
+      // 3. 지원하기 POST 요청
+      await api.post("/applications", {
+        jobPostId: jobId,
+        resumeId: representativeResume.resumeId
+      });
+      
+      alert("지원이 완료되었습니다!");
+      // 필요시 지원 내역 페이지로 이동
+      // navigate("/user/applications");
+      
+    } catch (error) {
+      console.error("지원 실패:", error);
+      if (error.response?.status === 401) {
+        alert("로그인이 필요합니다.");
+        navigate("/login");
+      } else if (error.response?.status === 409) {
+        alert("이미 지원한 공고입니다.");
+      } else {
+        alert("지원에 실패했습니다. 다시 시도해주세요.");
+      }
+    }
+  };
+
   return (
     <Container>
       <Header />
@@ -414,29 +456,6 @@ function JobDetailPage() {
           </TTSButton>
         </JobHeaderCard>
 
-        {/* 2. AI 요약 */}
-        <SummaryBox>
-          <SummaryHeader>
-            <Bot size={20} /> AI 3줄 요약
-          </SummaryHeader>
-          <SummaryList>
-            <SummaryItem>
-              <NumberCircle>1</NumberCircle>
-              일반 사무 행정 업무(문서 작성, 데이터 입력, 전화 응대)를 담당하며,
-              특별한 경력이 필요하지 않습니다.
-            </SummaryItem>
-            <SummaryItem>
-              <NumberCircle>2</NumberCircle>
-              근로지원인이 상시 배치되어 업무 중 필요한 보조를 받을 수 있습니다.
-            </SummaryItem>
-            <SummaryItem>
-              <NumberCircle>3</NumberCircle>
-              건물 전체가 휠체어 접근 가능하며, 장애 유형별 맞춤 보조기기가
-              지원됩니다.
-            </SummaryItem>
-          </SummaryList>
-        </SummaryBox>
-
         {/* 3. 채용 요약 (Grid) */}
         <SectionCard>
           <SectionTitle>
@@ -470,62 +489,12 @@ function JobDetailPage() {
           </GridInfo>
         </SectionCard>
 
-        {/* 4. 업무 내용 */}
-        <SectionCard>
-          <SectionTitle>
-            <Briefcase size={20} /> 업무 내용
-          </SectionTitle>
-          <TextContent>
-            한국장애인고용공단은 장애인의 직업 안정을 위해 설립된
-            공공기관입니다. 행정 사무 보조원으로서 부서 내 일반 행정 업무를
-            지원하게 됩니다.
-            <br />
-            <br />
-            주요 업무로는 문서 작성 및 정리, 데이터 입력 및 관리, 내방객 안내,
-            전화 응대, 회의 자료 준비 등이 있습니다. 업무 강도는 높지 않으며,
-            충분한 교육 기간이 제공됩니다.
-          </TextContent>
-        </SectionCard>
-
-        {/* 5. 자격 요건 & 우대 사항 */}
-        <SectionCard>
-          <SectionTitle>
-            <div style={{ marginRight: "8px" }}>✅</div> 자격 요건
-          </SectionTitle>
-          <BulletList>
-            <li>기본적인 컴퓨터 활용 능력 (한글, 엑셀 등)</li>
-            <li>성실하고 책임감 있는 업무 태도</li>
-            <li>원활한 의사소통 능력</li>
-          </BulletList>
-          <div style={{ height: "30px" }} /> {/* 간격 */}
-          <SectionTitle>
-            <div style={{ marginRight: "8px" }}>⭐</div> 우대 사항
-          </SectionTitle>
-          <BulletList>
-            <li>행정 또는 사무 관련 경험</li>
-            <li>공공기관 근무 경험</li>
-            <li>관련 자격증 보유자 (ITQ, 워드프로세서 등)</li>
-          </BulletList>
-        </SectionCard>
-
-        {/* 6. 근무 환경 */}
-        <SectionCard>
-          <SectionTitle>
-            <div style={{ marginRight: "8px" }}>♿</div> 근무 환경 및 편의 시설
-          </SectionTitle>
-          <BulletList>
-            <li>건물 전체 휠체어 접근 가능 (자동문, 엘리베이터)</li>
-            <li>근로지원인 상시 배치</li>
-            <li>장애 유형별 맞춤 보조기기 지원</li>
-          </BulletList>
-        </SectionCard>
-
         {/* 하단 액션 버튼 */}
         <ActionContainer>
           <ScrapButton onClick={() => alert("스크랩 되었습니다.")}>
             <Bookmark size={20} /> 스크랩
           </ScrapButton>
-          <ApplyButton onClick={() => alert("지원 페이지로 이동합니다.")}>
+          <ApplyButton onClick={handleApply}>
             지원하기
           </ApplyButton>
         </ActionContainer>
