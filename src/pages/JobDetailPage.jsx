@@ -8,15 +8,6 @@ const Container = styled.div`
   background-color: #f8f9fa;
 `;
 
-const Header = styled.header`
-  background-color: white;
-  padding: 20px 40px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-`;
-
 const Logo = styled.h1`
   margin: 0;
   color: #667eea;
