@@ -207,45 +207,64 @@ const VoiceResumeHint = styled.p`
   margin: 0 0 16px 0;
 `;
 
+const VoiceBtnGroup = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+`;
+
 const GuideBtn = styled.button`
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-size: 0.9rem;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 16px 20px;
+  border-radius: 10px;
+  font-size: 1rem;
   font-weight: 600;
-  border: 1px solid #1b3a6b;
+  border: 2px solid #1b3a6b;
   cursor: pointer;
   transition: all 0.2s;
   background: ${(p) => (p.active ? "#1b3a6b" : "white")};
   color: ${(p) => (p.active ? "white" : "#1b3a6b")};
-  margin-bottom: 12px;
 
   &:hover {
     background: ${(p) => (p.active ? "#162f56" : "#e8eef5")};
   }
+
+  &:focus-visible {
+    outline: 3px solid #4a90d9;
+    outline-offset: 2px;
+  }
 `;
 
 const RecordBtn = styled.button`
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-size: 0.95rem;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 16px 20px;
+  border-radius: 10px;
+  font-size: 1rem;
   font-weight: 600;
   border: none;
   cursor: pointer;
   transition: all 0.2s;
   background: ${(p) => (p.recording ? "#dc2626" : "#1b3a6b")};
   color: white;
+
   &:hover {
     opacity: 0.9;
   }
   &:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+  }
+  &:focus-visible {
+    outline: 3px solid #4a90d9;
+    outline-offset: 2px;
   }
 `;
 
@@ -262,20 +281,27 @@ const TranscriptBox = styled.div`
 `;
 
 const ResumeLinkBtn = styled.button`
-  margin-top: 12px;
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 16px 20px;
   background: #1b3a6b;
   color: white;
   border: none;
-  border-radius: 6px;
-  font-size: 0.9rem;
+  border-radius: 10px;
+  font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
+  transition: all 0.2s;
+
   &:hover {
     background: #162f56;
+  }
+  &:focus-visible {
+    outline: 3px solid #4a90d9;
+    outline-offset: 2px;
   }
 `;
 
@@ -420,61 +446,62 @@ function ResumeListPage() {
           <VoiceResumeHint>
             녹음한 음성을 텍스트로 변환한 뒤 이력서로 저장합니다. (최대 {MAX_AUDIO_MB}MB, 약 10~60초 소요)
           </VoiceResumeHint>
-          <GuideBtn
-            type="button"
-            active={isGuidePlaying}
-            onClick={() => toggleGuide(GUIDE_AUDIO_URL)}
-          >
-            {isGuidePlaying ? <VolumeX size={18} /> : <Volume2 size={18} />}
-            {isGuidePlaying ? "안내 정지" : "녹음 전 안내 듣기"}
-          </GuideBtn>
-          {voiceStatus === "idle" && (
-            <RecordBtn type="button" onClick={startVoiceRecording}>
-              <Mic size={18} /> 녹음하기
-            </RecordBtn>
-          )}
-          {voiceStatus === "recording" && (
-            <RecordBtn type="button" recording onClick={stopVoiceRecording}>
-              <Mic size={18} /> 녹음 중... (중지하려면 클릭)
-            </RecordBtn>
-          )}
-          {voiceStatus === "uploading" && (
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <SpinnerWrap><Loader2 size={20} /></SpinnerWrap>
-              <span>변환 중입니다... (10~60초 소요)</span>
-            </div>
-          )}
+          <VoiceBtnGroup>
+            <GuideBtn
+              type="button"
+              active={isGuidePlaying}
+              onClick={() => toggleGuide(GUIDE_AUDIO_URL)}
+            >
+              {isGuidePlaying ? <VolumeX size={18} /> : <Volume2 size={18} />}
+              {isGuidePlaying ? "안내 정지" : "녹음 전 안내 듣기"}
+            </GuideBtn>
+            {voiceStatus === "idle" && (
+              <RecordBtn type="button" onClick={startVoiceRecording}>
+                <Mic size={18} /> 녹음하기
+              </RecordBtn>
+            )}
+            {voiceStatus === "recording" && (
+              <RecordBtn type="button" recording onClick={stopVoiceRecording}>
+                <Mic size={18} /> 녹음 중... (중지하려면 클릭)
+              </RecordBtn>
+            )}
+            {voiceStatus === "uploading" && (
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, padding: "16px 0" }}>
+                <SpinnerWrap><Loader2 size={20} /></SpinnerWrap>
+                <span>변환 중입니다... (10~60초 소요)</span>
+              </div>
+            )}
+          </VoiceBtnGroup>
           {voiceStatus === "success" && voiceResult && (
             <>
               <TranscriptBox>{voiceResult.transcript || "(변환된 텍스트 없음)"}</TranscriptBox>
-              <ResumeLinkBtn
-                type="button"
-                onClick={() => navigate(`/user/resumes/${voiceResult.resume?.resumeId}`)}
-              >
-                <CheckCircle size={16} /> 이력서 보기
-              </ResumeLinkBtn>
-              <RecordBtn
-                type="button"
-                style={{ marginLeft: 8, background: "#6b7280" }}
-                onClick={() => { setVoiceStatus("idle"); setVoiceResult(null); }}
-              >
-                다시 녹음
-              </RecordBtn>
+              <VoiceBtnGroup style={{ marginTop: 12 }}>
+                <ResumeLinkBtn type="button" onClick={() => navigate(`/user/resumes/${voiceResult.resume?.resumeId}`)}>
+                  <CheckCircle size={16} /> 이력서 보기
+                </ResumeLinkBtn>
+                <RecordBtn
+                  type="button"
+                  style={{ background: "#6b7280" }}
+                  onClick={() => { setVoiceStatus("idle"); setVoiceResult(null); }}
+                >
+                  다시 녹음
+                </RecordBtn>
+              </VoiceBtnGroup>
             </>
           )}
           {voiceStatus === "error" && (
-            <>
+            <VoiceBtnGroup style={{ marginTop: 12 }}>
               <VoiceError>
                 <AlertCircle size={18} /> {voiceError}
               </VoiceError>
               <RecordBtn
                 type="button"
-                style={{ marginTop: 8, background: "#6b7280" }}
+                style={{ background: "#6b7280" }}
                 onClick={() => { setVoiceStatus("idle"); setVoiceError(""); }}
               >
                 다시 시도
               </RecordBtn>
-            </>
+            </VoiceBtnGroup>
           )}
         </VoiceResumeCard>
 
