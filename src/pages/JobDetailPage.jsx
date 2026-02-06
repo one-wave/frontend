@@ -1,6 +1,7 @@
 import styled from '@emotion/styled';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useState } from 'react';
+import Header from '../shared/Header';
 
 const Container = styled.div`
   min-height: 100vh;
@@ -173,10 +174,7 @@ function JobDetailPage() {
 
   return (
     <Container>
-      <Header>
-        <Logo onClick={() => navigate('/')}>잡케어</Logo>
-        <BackButton onClick={() => navigate(-1)}>← 목록으로</BackButton>
-      </Header>
+      <Header/>
 
       <Content>
         <JobHeader>

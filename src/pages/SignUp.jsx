@@ -2,95 +2,6 @@ import { useState } from 'react';
 import styled from '@emotion/styled';
 import { User, Globe, Eye, EyeOff, Lock, Mail, UserPlus } from 'lucide-react';
 
-const Signup = () => {
-  const [activeTab, setActiveTab] = useState('individual');
-  const [showPassword, setShowPassword] = useState(false);
-
-  return (
-    <Container>
-      {/* 로고 및 제목 섹션 */}
-      <HeaderSection>
-        <LogoBox>
-          <User size={28} color="white" fill="white" />
-        </LogoBox>
-        <Title>배리어 프리</Title>
-        <Subtitle>장애인 구직자와 기업을 연결합니다</Subtitle>
-      </HeaderSection>
-
-      {/* 회원가입 카드 */}
-      <Card>
-        <TabGroup>
-          <Tab 
-            active={activeTab === 'individual'} 
-            onClick={() => setActiveTab('individual')}
-          >
-            개인 회원
-          </Tab>
-          <Tab 
-            active={activeTab === 'corporate'} 
-            onClick={() => setActiveTab('corporate')}
-          >
-            기업 회원
-          </Tab>
-        </TabGroup>
-
-        <FormContainer>
-          <FormTitle>
-            {activeTab === 'individual' ? '개인 회원(구직자) 회원가입' : '기업 회원 회원가입'}
-          </FormTitle>
-          <FormDescription>아래 정보를 입력하여 회원가입을 진행하세요.</FormDescription>
-
-          <form onSubmit={(e) => e.preventDefault()}>
-            {/* 이름 필드 */}
-            <InputGroup>
-              <Label>이름</Label>
-              <InputWrapper>
-                <InputIcon><UserPlus size={18} /></InputIcon>
-                <Input type="text" placeholder="홍길동" />
-              </InputWrapper>
-            </InputGroup>
-
-            {/* 이메일 필드 */}
-            <InputGroup>
-              <Label>이메일</Label>
-              <InputWrapper>
-                <InputIcon><Mail size={18} /></InputIcon>
-                <Input type="email" placeholder="example@email.com" />
-              </InputWrapper>
-            </InputGroup>
-            
-            {/* 비밀번호 필드 */}
-            <InputGroup>
-              <Label>비밀번호</Label>
-              <InputWrapper>
-                <InputIcon><Lock size={18} /></InputIcon>
-                <Input 
-                  type={showPassword ? "text" : "password"} 
-                  placeholder="8자 이상 입력하세요" 
-                />
-                <PasswordToggle 
-                  type="button" 
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </PasswordToggle>
-              </InputWrapper>
-            </InputGroup>
-
-            <SubmitButton type="submit">회원가입</SubmitButton>
-          </form>
-
-          <FooterLink>
-            이미 계정이 있으신가요? <a href="/login">로그인</a>
-          </FooterLink>
-        </FormContainer>
-      </Card>
-    </Container>
-  );
-};
-
-export default Signup;
-
 // --- Emotion Styled Components (공통 스타일 유지) ---
 
 const Container = styled.div`
@@ -256,3 +167,92 @@ const FooterLink = styled.div`
     &:hover { text-decoration: underline; }
   }
 `;
+
+const Signup = () => {
+  const [activeTab, setActiveTab] = useState('individual');
+  const [showPassword, setShowPassword] = useState(false);
+
+  return (
+    <Container>
+      {/* 로고 및 제목 섹션 */}
+      <HeaderSection>
+        <LogoBox>
+          <User size={28} color="white" fill="white" />
+        </LogoBox>
+        <Title>배리어 프리</Title>
+        <Subtitle>장애인 구직자와 기업을 연결합니다</Subtitle>
+      </HeaderSection>
+
+      {/* 회원가입 카드 */}
+      <Card>
+        <TabGroup>
+          <Tab 
+            active={activeTab === 'individual'} 
+            onClick={() => setActiveTab('individual')}
+          >
+            개인 회원
+          </Tab>
+          <Tab 
+            active={activeTab === 'corporate'} 
+            onClick={() => setActiveTab('corporate')}
+          >
+            기업 회원
+          </Tab>
+        </TabGroup>
+
+        <FormContainer>
+          <FormTitle>
+            {activeTab === 'individual' ? '개인 회원(구직자) 회원가입' : '기업 회원 회원가입'}
+          </FormTitle>
+          <FormDescription>아래 정보를 입력하여 회원가입을 진행하세요.</FormDescription>
+
+          <form onSubmit={(e) => e.preventDefault()}>
+            {/* 이름 필드 */}
+            <InputGroup>
+              <Label>이름</Label>
+              <InputWrapper>
+                <InputIcon><UserPlus size={18} /></InputIcon>
+                <Input type="text" placeholder="홍길동" />
+              </InputWrapper>
+            </InputGroup>
+
+            {/* 이메일 필드 */}
+            <InputGroup>
+              <Label>이메일</Label>
+              <InputWrapper>
+                <InputIcon><Mail size={18} /></InputIcon>
+                <Input type="email" placeholder="example@email.com" />
+              </InputWrapper>
+            </InputGroup>
+            
+            {/* 비밀번호 필드 */}
+            <InputGroup>
+              <Label>비밀번호</Label>
+              <InputWrapper>
+                <InputIcon><Lock size={18} /></InputIcon>
+                <Input 
+                  type={showPassword ? "text" : "password"} 
+                  placeholder="8자 이상 입력하세요" 
+                />
+                <PasswordToggle 
+                  type="button" 
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </PasswordToggle>
+              </InputWrapper>
+            </InputGroup>
+
+            <SubmitButton type="submit">회원가입</SubmitButton>
+          </form>
+
+          <FooterLink>
+            이미 계정이 있으신가요? <a href="/login">로그인</a>
+          </FooterLink>
+        </FormContainer>
+      </Card>
+    </Container>
+  );
+};
+
+export default Signup;

@@ -19,6 +19,7 @@ import {
   RefreshCw, // 교체 아이콘
   Trash2, // 삭제 아이콘
 } from "lucide-react";
+import Header from "../shared/Header";
 
 // --- Global Styles ---
 const GlobalStyle = css`
@@ -437,24 +438,8 @@ function MyPage() {
   return (
     <Container>
       <Global styles={GlobalStyle} />
-
       {/* Header */}
-      <HeaderWrapper>
-        <HeaderContent>
-          <Logo onClick={() => navigate("/")}>
-            <Accessibility size={28} />
-            배리어 프리
-          </Logo>
-          <HeaderButtonGroup>
-            <HeaderBtn primary>
-              <UserRound size={16} /> 마이페이지
-            </HeaderBtn>
-            <HeaderBtn onClick={() => navigate("/")}>
-              <LogOut size={16} /> 로그아웃
-            </HeaderBtn>
-          </HeaderButtonGroup>
-        </HeaderContent>
-      </HeaderWrapper>
+      <Header/>
 
       {/* Hero Section */}
       <HeroSection>

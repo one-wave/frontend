@@ -1,41 +1,11 @@
 import styled from '@emotion/styled';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Header from '../shared/Header';
 
 const Container = styled.div`
   min-height: 100vh;
   background-color: #f8f9fa;
-`;
-
-const Header = styled.header`
-  background-color: white;
-  padding: 20px 40px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-`;
-
-const Logo = styled.h1`
-  margin: 0;
-  color: #667eea;
-  font-size: 24px;
-  cursor: pointer;
-`;
-
-const BackButton = styled.button`
-  padding: 10px 20px;
-  background-color: #f0f0f0;
-  color: #333;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
-
-  &:hover {
-    background-color: #e0e0e0;
-  }
 `;
 
 const Content = styled.main`
@@ -231,11 +201,7 @@ function JobPostPage() {
 
   return (
     <Container>
-      <Header>
-        <Logo onClick={() => navigate('/company/dashboard')}>잡케어 기업</Logo>
-        <BackButton onClick={() => navigate(-1)}>← 뒤로가기</BackButton>
-      </Header>
-
+      <Header/>
       <Content>
         <PageTitle>채용 공고 등록</PageTitle>
 
