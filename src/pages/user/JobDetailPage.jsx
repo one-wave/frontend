@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useState } from "react";
 import Header from "../../shared/Header";
 import {
@@ -325,7 +325,37 @@ const ApplyButton = styled.button`
 function JobDetailPage() {
   const navigate = useNavigate();
   const { jobId } = useParams();
+  const location = useLocation();
   const [isSpeaking, setIsSpeaking] = useState(false);
+
+  // UserMainPage에서 전달받은 데이터
+  const { jobData, matchScore } = location.state || {};
+  
+  // 데이터가 없으면 (직접 URL 접근) API 호출 필요
+  if (!jobData) {
+    // TODO: API로 jobId를 사용해 데이터 가져오기
+    console.log('JobId for future API call:', jobId);
+  }
+
+  // 급여 표시
+  const salaryDisplay = jobData 
+    ? `${jobData.salaryType} ${(jobData.salary / 10000).toLocaleString()}만원`
+    : "2,400만원 ~ 2,800만원";
+
+  // 마감일 계산
+  let deadline = "마감";
+  let daysLeft = 0;
+  if (jobData?.offerEndDt) {
+    const dateStr = String(jobData.offerEndDt);
+    const endDate = new Date(
+      dateStr.substring(0, 4),
+      parseInt(dateStr.substring(4, 6)) - 1,
+      dateStr.substring(6, 8)
+    );
+    const today = new Date();
+    daysLeft = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
+    deadline = daysLeft > 0 ? `D-${daysLeft}` : "마감";
+  }
 
   const handleTTS = () => {
     setIsSpeaking(!isSpeaking);
@@ -350,16 +380,27 @@ function JobDetailPage() {
             <CompanyIcon>
               <Building2 size={16} />
             </CompanyIcon>
-            <CompanyName>한국장애인고용공단</CompanyName>
+            <CompanyName>{jobData?.companyName || "한국장애인고용공단"}</CompanyName>
           </CompanyInfo>
 
-          <JobTitle>행정 사무 보조원</JobTitle>
+          <JobTitle>{jobData?.jobNm || "행정 사무 보조원"}</JobTitle>
 
           <BadgeContainer>
-            <Badge type="d-day">⏰ 마감 임박 D-3</Badge>
-            <Badge type="location">📍 서울 영등포구</Badge>
-            <Badge type="blue">#휠체어접근가능</Badge>
-            <Badge type="orange">#근로지원인지원</Badge>
+            {daysLeft > 0 && daysLeft <= 7 && (
+              <Badge type="d-day">⏰ 마감 임박 {deadline}</Badge>
+            )}
+            {jobData?.jobLocation && (
+              <Badge type="location">📍 {jobData.jobLocation}</Badge>
+            )}
+            {jobData?.empType && (
+              <Badge type="blue">#{jobData.empType}</Badge>
+            )}
+            {jobData?.reqCareer && (
+              <Badge type="orange">#{jobData.reqCareer}</Badge>
+            )}
+            {matchScore && (
+              <Badge type="blue">🎯 매칭점수 {matchScore}점</Badge>
+            )}
           </BadgeContainer>
 
           <TTSButton onClick={handleTTS}>
@@ -406,25 +447,25 @@ function JobDetailPage() {
               <InfoLabel>
                 <CreditCard size={16} /> 급여
               </InfoLabel>
-              <InfoValue>2,400만원 ~ 2,800만원</InfoValue>
+              <InfoValue>{salaryDisplay}</InfoValue>
             </InfoBox>
             <InfoBox>
               <InfoLabel>
                 <Briefcase size={16} /> 고용 형태
               </InfoLabel>
-              <InfoValue>계약직 (정규직 전환 가능)</InfoValue>
+              <InfoValue>{jobData?.empType || "계약직"}</InfoValue>
             </InfoBox>
             <InfoBox>
               <InfoLabel>
-                <Clock size={16} /> 근무 시간
+                <Clock size={16} /> 학력
               </InfoLabel>
-              <InfoValue>주 35시간</InfoValue>
+              <InfoValue>{jobData?.reqEduc || "무관"}</InfoValue>
             </InfoBox>
             <InfoBox>
               <InfoLabel>
                 <MapPin size={16} /> 근무지
               </InfoLabel>
-              <InfoValue>서울 영등포구</InfoValue>
+              <InfoValue>{jobData?.jobLocation || "서울"}</InfoValue>
             </InfoBox>
           </GridInfo>
         </SectionCard>

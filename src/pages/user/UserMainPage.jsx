@@ -106,8 +106,14 @@ function UserMainPage() {
   // API 응답은 직접 배열로 옴
   const jobs = jobPostsData || [];
 
-  const handleJobClick = (jobId) => {
-    navigate(`/user/job/${jobId}`);
+  const handleJobClick = (jobData, matchScore) => {
+    navigate(`/user/job/${jobData.jobPostId}`, { 
+      state: { 
+        jobData,
+        matchScore,
+        isLoggedIn 
+      } 
+    });
   };
 
   return (
@@ -154,7 +160,7 @@ function UserMainPage() {
                     key={jobData.jobPostId}
                     item={jobData}
                     matchScore={matchScore}
-                    onClick={() => handleJobClick(jobData.jobPostId)}
+                    onClick={() => handleJobClick(jobData, matchScore)}
                   />
                 );
               })}
