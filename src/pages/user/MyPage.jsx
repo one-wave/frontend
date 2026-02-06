@@ -1,5 +1,4 @@
 import styled from "@emotion/styled";
-import { Global, css } from "@emotion/react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -12,90 +11,21 @@ import {
   Building,
   Monitor,
   Briefcase,
-  Accessibility,
-  LogOut,
-  UserRound,
-  CheckCircle, // 업로드 완료 아이콘
-  RefreshCw, // 교체 아이콘
-  Trash2, // 삭제 아이콘
+  CheckCircle,
+  RefreshCw,
+  Trash2,
 } from "lucide-react";
-import Header from "../shared/Header";
-
-// --- Global Styles ---
-const GlobalStyle = css`
-  @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css");
-  * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    font-family: "Pretendard", sans-serif;
-  }
-  body {
-    background-color: #f8f9fa;
-    color: #333;
-  }
-  button {
-    cursor: pointer;
-    border: none;
-    outline: none;
-    font-family: inherit;
-  }
-`;
+import Header from "../../shared/Header";
 
 // --- Styled Components ---
 
 const Container = styled.div`
   width: 100%;
   min-height: 100vh;
+  background-color: #f8f9fa;
 `;
 
-// 1. Header
-const HeaderWrapper = styled.header`
-  background: white;
-  border-bottom: 1px solid #eee;
-  padding: 12px 0;
-`;
-
-const HeaderContent = styled.div`
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-`;
-
-const Logo = styled.div`
-  font-size: 1.25rem;
-  font-weight: 800;
-  color: #0b4da2;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-`;
-
-const HeaderButtonGroup = styled.div`
-  display: flex;
-  gap: 8px;
-`;
-
-const HeaderBtn = styled.button`
-  background: ${(props) => (props.primary ? "#0b4da2" : "white")};
-  border: 1px solid ${(props) => (props.primary ? "#0b4da2" : "#ddd")};
-  padding: 8px 16px;
-  border-radius: 4px;
-  font-size: 0.9rem;
-  color: ${(props) => (props.primary ? "white" : "#555")};
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  &:hover {
-    background: ${(props) => (props.primary ? "#093c80" : "#f1f1f1")};
-  }
-`;
-
-// 2. Hero Section
+// 1. Hero Section
 const HeroSection = styled.div`
   background-color: #0b4da2;
   padding: 50px 0;
@@ -114,7 +44,7 @@ const HeroSubtitle = styled.p`
   opacity: 0.8;
 `;
 
-// 3. Main Content
+// 2. Main Content
 const Content = styled.main`
   max-width: 800px;
   margin: -30px auto 60px;
@@ -198,15 +128,16 @@ const EditButton = styled.button`
   display: flex;
   align-items: center;
   gap: 6px;
+  cursor: pointer;
   &:hover {
     background: #f0f7ff;
   }
 `;
 
-// Resume Section - Uploaded State Style
+// Resume Section - Uploaded State
 const UploadedArea = styled.div`
-  border: 2px dashed #2e7d32; /* Green border */
-  background-color: #e8f5e9; /* Green background */
+  border: 2px dashed #2e7d32;
+  background-color: #e8f5e9;
   border-radius: 12px;
   padding: 30px;
   text-align: center;
@@ -273,6 +204,7 @@ const FileActionBtn = styled.button`
   align-items: center;
   gap: 6px;
   background: white;
+  cursor: pointer;
   border: 1px solid ${(props) => (props.delete ? "#e57373" : "#0b4da2")};
   color: ${(props) => (props.delete ? "#d32f2f" : "#0b4da2")};
 
@@ -281,7 +213,7 @@ const FileActionBtn = styled.button`
   }
 `;
 
-// Resume Section - Initial Upload Style
+// Resume Section - Initial Upload
 const UploadArea = styled.div`
   border: 2px dashed #d0d0d0;
   border-radius: 8px;
@@ -381,6 +313,7 @@ const SaveButton = styled.button`
   justify-content: center;
   align-items: center;
   gap: 8px;
+  cursor: pointer;
   box-shadow: 0 4px 12px rgba(11, 77, 162, 0.2);
 
   &:hover {
@@ -390,8 +323,8 @@ const SaveButton = styled.button`
 
 function MyPage() {
   const navigate = useNavigate();
-  const [fileName, setFileName] = useState(""); // 파일 이름 상태
-  const [fileSize, setFileSize] = useState(""); // 파일 크기 상태 (더미)
+  const [fileName, setFileName] = useState("");
+  const [fileSize, setFileSize] = useState("");
 
   const [facilities, setFacilities] = useState({
     wheelchair: false,
@@ -406,23 +339,19 @@ function MyPage() {
     shortTime: false,
   });
 
-  // 파일 업로드 핸들러
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
       setFileName(file.name);
-      // 실제 파일 크기 계산 (예시: 1.1 MB 하드코딩)
       setFileSize((file.size / (1024 * 1024)).toFixed(1) + " MB");
     }
   };
 
-  // 파일 삭제 핸들러
   const handleFileDelete = () => {
     setFileName("");
     setFileSize("");
   };
 
-  // 파일 교체 핸들러 (파일 입력창 열기)
   const handleFileReplace = () => {
     document.getElementById("resume-file").click();
   };
@@ -437,11 +366,8 @@ function MyPage() {
 
   return (
     <Container>
-      <Global styles={GlobalStyle} />
-      {/* Header */}
-      <Header/>
+      <Header />
 
-      {/* Hero Section */}
       <HeroSection>
         <HeroTitle>마이페이지</HeroTitle>
         <HeroSubtitle>프로필과 편의시설 설정을 관리하세요</HeroSubtitle>
@@ -486,7 +412,6 @@ function MyPage() {
             </CardTitle>
           </CardHeader>
 
-          {/* 숨겨진 파일 입력창 */}
           <FileInput
             id="resume-file"
             type="file"
@@ -495,7 +420,6 @@ function MyPage() {
           />
 
           {fileName ? (
-            // 파일이 업로드된 상태 (초록색 디자인)
             <UploadedArea>
               <UploadIconWrapper
                 style={{ background: "#c8e6c9", color: "#2e7d32" }}
@@ -524,7 +448,6 @@ function MyPage() {
               </UploadedFileCard>
             </UploadedArea>
           ) : (
-            // 파일이 없는 초기 상태
             <UploadArea
               onClick={() => document.getElementById("resume-file").click()}
             >
@@ -558,7 +481,6 @@ function MyPage() {
             </CardTitle>
           </CardHeader>
 
-          {/* Physical Environment */}
           <SectionGroup>
             <SubTitle>
               <Building size={18} /> 물리적 환경
@@ -607,7 +529,6 @@ function MyPage() {
             }}
           />
 
-          {/* Work Support */}
           <SectionGroup>
             <SubTitle>
               <Monitor size={18} /> 업무 지원
@@ -648,7 +569,6 @@ function MyPage() {
             }}
           />
 
-          {/* Work Type */}
           <SectionGroup>
             <SubTitle>
               <Briefcase size={18} /> 근무 형태
@@ -682,7 +602,6 @@ function MyPage() {
           </SectionGroup>
         </Card>
 
-        {/* Save Button */}
         <SaveButton onClick={handleSave}>
           <Save size={20} /> 설정 저장하기
         </SaveButton>

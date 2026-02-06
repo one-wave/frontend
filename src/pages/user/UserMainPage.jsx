@@ -11,7 +11,7 @@ import {
   MapPin,
   Briefcase,
 } from "lucide-react";
-import Header from "../shared/Header";
+import Header from "../../shared/Header";
 
 // --- Styled Components ---
 
@@ -313,8 +313,6 @@ function UserMainPage() {
     visual: false,
     hearing: false,
   });
-
-
 
   // 기존 데이터 유지
   const jobs = [

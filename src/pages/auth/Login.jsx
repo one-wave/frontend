@@ -296,7 +296,6 @@ function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  // 기업 로그인용 상태
   const [companies, setCompanies] = useState([]);
   const [companySearch, setCompanySearch] = useState('');
   const [selectedCompanyId, setSelectedCompanyId] = useState(null);
@@ -363,7 +362,8 @@ function Login() {
   const isCompanyNotFound =
     companySearch.trim().length > 0 && filteredCompanies.length === 0;
 
-  const handleLogin = async (e) => {
+  const handleLogin = (e) => {
+
     e.preventDefault();
 
     const userType = activeTab === 'individual' ? 'jobseeker' : 'company';
@@ -387,7 +387,7 @@ function Login() {
 
     try {
       // 기업 회원 로그인: 인증코드만 보내는 로그인 요청
-      const res = await fetch('/api/user/login', {
+      const res =  fetch('/api/user/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -401,7 +401,7 @@ function Login() {
         throw new Error('로그인 요청이 실패했습니다.');
       }
 
-      const result = await res.json();
+      const result = res.json();
       console.log('기업 로그인 성공 응답:', result);
 
       navigate('/company/dashboard', {
@@ -443,7 +443,7 @@ function Login() {
 
         <FormHeader>
           <FormTitle>
-            {activeTab === 'individual' ? '개인 회원(구직자) 로그인' : '기업 회원 로그인'}
+            {activeTab === 'individual' ? '개인 회원 로그인' : '기업 회원 로그인'}
           </FormTitle>
           <FormDescription>
             {activeTab === 'individual'

@@ -1,148 +1,7 @@
 import styled from "@emotion/styled";
-import { useNavigate } from "react-router-dom";
-import {
-  LayoutDashboard,
-  FileText,
-  Settings,
-  LogOut,
-  Users,
-  ChevronRight,
-  Accessibility,
-} from "lucide-react";
+import { FileText, Users, ChevronRight } from "lucide-react";
+import CompanyLayout from "../../shared/CompanyHeader";
 
-const LayoutContainer = styled.div`
-  display: flex;
-  min-height: 100vh;
-  background-color: #f5f7fb;
-`;
-
-// 1. Sidebar
-const Sidebar = styled.aside`
-  width: 260px;
-  background-color: #243c5a;
-  color: white;
-  display: flex;
-  flex-direction: column;
-  flex-shrink: 0;
-`;
-
-const SidebarHeader = styled.div`
-  height: 80px;
-  display: flex;
-  align-items: center;
-  padding: 0 24px;
-  font-size: 1.2rem;
-  font-weight: 800;
-  gap: 10px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-`;
-
-const Menu = styled.nav`
-  flex: 1;
-  padding: 20px 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-`;
-
-const MenuItem = styled.button`
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px 16px;
-  background-color: ${(props) =>
-    props.active ? "rgba(255,255,255,0.1)" : "transparent"};
-  color: ${(props) => (props.active ? "white" : "#a0aec0")};
-  border-radius: 8px;
-  font-size: 0.95rem;
-  font-weight: 500;
-  text-align: left;
-  transition: all 0.2s;
-
-  &:hover {
-    background-color: rgba(255, 255, 255, 0.15);
-    color: white;
-  }
-`;
-
-const SidebarFooter = styled.div`
-  padding: 24px;
-  font-size: 0.75rem;
-  color: #718096;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-`;
-
-// 2. Main Area
-const MainContent = styled.main`
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-`;
-
-// Top Header
-const Header = styled.header`
-  height: 80px;
-  background: white;
-  border-bottom: 1px solid #e2e8f0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 40px;
-`;
-
-const WelcomeMsg = styled.div`
-  h2 {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: #2d3748;
-    margin-bottom: 4px;
-  }
-  p {
-    font-size: 0.9rem;
-    color: #718096;
-  }
-`;
-
-const HeaderActions = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 16px;
-`;
-
-const IconButton = styled.button`
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
-  background: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #718096;
-  &:hover {
-    background: #f7fafc;
-    color: #4a5568;
-  }
-`;
-
-const LogoutBtn = styled.button`
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  border: 1px solid #e2e8f0;
-  background: white;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  color: #4a5568;
-  font-weight: 600;
-  &:hover {
-    background: #f7fafc;
-  }
-`;
-
-// Dashboard Content
 const DashboardBody = styled.div`
   padding: 40px;
   overflow-y: auto;
@@ -312,12 +171,6 @@ const StatusBadge = styled.span`
 `;
 
 function CompanyDashboardPage() {
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    navigate("/login");
-  };
-
   const applicants = [
     {
       id: 1,
@@ -365,43 +218,19 @@ function CompanyDashboardPage() {
     },
   ];
 
+  const headerSubtitle = new Date().toLocaleDateString("ko-KR", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    weekday: "short",
+  });
+
   return (
-    <LayoutContainer>
-      {/* Left Sidebar */}
-      <Sidebar>
-        <SidebarHeader>
-          <Accessibility size={28} />
-          배리어 프리
-        </SidebarHeader>
-        <Menu>
-          <MenuItem active>
-            <LayoutDashboard size={20} /> 대시보드
-          </MenuItem>
-          <MenuItem onClick={() => navigate("/company/job-post")}>
-            <FileText size={20} /> 공고 관리
-          </MenuItem>
-          <MenuItem>
-            <Settings size={20} /> 설정
-          </MenuItem>
-        </Menu>
-        <SidebarFooter>기업 관리자 포털 v1.0</SidebarFooter>
-      </Sidebar>
-
-      {/* Right Main Content */}
-      <MainContent>
-        <Header>
-          <WelcomeMsg>
-            <h2>안녕하세요, 관리자님</h2>
-            <p>2026년 2월 6일 (금)</p>
-          </WelcomeMsg>
-          <HeaderActions>
-            <LogoutBtn onClick={handleLogout}>
-              <LogOut size={16} /> 로그아웃
-            </LogoutBtn>
-          </HeaderActions>
-        </Header>
-
-        <DashboardBody>
+    <CompanyLayout
+      headerTitle="안녕하세요, 관리자님"
+      headerSubtitle={headerSubtitle}
+    >
+      <DashboardBody>
           {/* Total Count Card */}
           <MainStatCard>
             <StatInfo>
@@ -450,9 +279,8 @@ function CompanyDashboardPage() {
               </ListItem>
             ))}
           </ApplicantList>
-        </DashboardBody>
-      </MainContent>
-    </LayoutContainer>
+      </DashboardBody>
+    </CompanyLayout>
   );
 }
 

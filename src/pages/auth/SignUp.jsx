@@ -206,6 +206,7 @@ const Signup = () => {
           </FormTitle>
           <FormDescription>아래 정보를 입력하여 회원가입을 진행하세요.</FormDescription>
 
+          {/* TODO: 회원가입 api연결할 핸들러 만든후 연결 */}
           <form onSubmit={(e) => e.preventDefault()}>
             {/* 이름 필드 */}
             <InputGroup>
