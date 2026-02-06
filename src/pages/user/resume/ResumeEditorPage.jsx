@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import Header from "../../../shared/Header";
-import { getResume, updateResume } from "../../../api/Auth";
+import { getResume, getResumes, updateResume, setRepresentative } from "../../../api/Auth";
 import { responseToUpdateShape, formToPayload } from "./resumeApiShape";
 import ResumeForm from "./ResumeForm";
 
@@ -105,8 +105,24 @@ function ResumeEditorPage() {
     setSubmitError("");
     setSubmitting(true);
     try {
+      const representativeChanged = data.representative !== loadedIsRepresentative;
+      if (representativeChanged) {
+        if (data.representative) {
+          await setRepresentative(resumeId);
+        } else {
+          const { data: list } = await getResumes();
+          const arr = Array.isArray(list) ? list : [];
+          const other = arr.find((r) => r.resumeId !== resumeId);
+          if (!other) {
+            setSubmitError("대표 해제하려면 다른 이력서가 하나 이상 필요합니다.");
+            setSubmitting(false);
+            return;
+          }
+          await setRepresentative(other.resumeId);
+        }
+      }
       const payload = formToPayload(data);
-      payload.isRepresentative = loadedIsRepresentative;
+      payload.isRepresentative = !!data.representative;
       await updateResume(resumeId, payload);
       navigate(`/user/resumes/${resumeId}`);
     } catch (err) {
@@ -161,7 +177,6 @@ function ResumeEditorPage() {
             onSubmit={handleSubmit}
             submitLabel={submitting ? "저장 중..." : "저장"}
             disabled={submitting}
-            representativeReadOnly
           />
         </Card>
       </Content>
