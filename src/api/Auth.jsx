@@ -4,6 +4,11 @@ export const userlogin = (user) => {
   return api.post("/auth/login", user);
 };
 
+/** 로그아웃 — POST /api/auth/logout (해당 사용자 Refresh Token 전부 폐기) */
+export const logout = () => {
+  return api.post("/auth/logout");
+};
+
 export const userSignup = (payload) => {
   return api.post("/auth/signup", payload);
 };

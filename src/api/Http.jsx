@@ -1,5 +1,13 @@
 import axios from "axios";
 
+/** 로그아웃/토큰 폐기 시 로컬 스토리지 정리 */
+export function clearAuthStorage() {
+  localStorage.removeItem("accessToken");
+  localStorage.removeItem("refreshToken");
+  localStorage.removeItem("userType");
+  localStorage.removeItem("userId");
+}
+
 /** JWT accessToken payload에서 sub(userId) 추출 */
 export function getUserIdFromToken(accessToken) {
   if (!accessToken || typeof accessToken !== "string") return null;
@@ -92,12 +100,7 @@ api.interceptors.response.use(
       } catch (refreshError) {
         // 재발급 실패 시 로그아웃 처리
         console.error("토큰 갱신 실패:", refreshError);
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
-        localStorage.removeItem("userType");
-        localStorage.removeItem("userId");
-        
-        // 로그인 페이지로 이동 (window.location 사용)
+        clearAuthStorage();
         window.location.href = "/login"; 
         return Promise.reject(refreshError);
       }
