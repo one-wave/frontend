@@ -2,7 +2,6 @@ import styled from '@emotion/styled';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User } from 'lucide-react';
-import { api, getUserIdFromToken } from '../../api/Http';
 
 const Container = styled.div`
   display: flex;
@@ -310,17 +309,21 @@ function Login() {
   const [isRegisterSubmitting, setIsRegisterSubmitting] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [showToast, setShowToast] = useState(false);
-  const [loginError, setLoginError] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
+    // 기업 탭으로 처음 진입할 때만 기업 목록을 불러온다.
     if (activeTab === 'company' && companies.length === 0 && !isLoadingCompanies) {
       const fetchCompanies = async () => {
         try {
           setIsLoadingCompanies(true);
           setCompanyError('');
-          const { data } = await api.get('/api/enterprise/company');
-          setCompanies(data?.data || []);
+          // Vite dev 서버 프록시(`/api` → `http://34.64.188.189:4000`)를 통해 호출
+          const res = await fetch('/api/enterprise/company');
+          if (!res.ok) {
+            throw new Error('기업 목록을 불러오지 못했습니다.');
+          }
+          const data = await res.json();
+          setCompanies(data.data || []);
         } catch (error) {
           console.error(error);
           setCompanyError('기업 목록을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.');
@@ -361,82 +364,55 @@ function Login() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setLoginError('');
-    setIsSubmitting(true);
 
     const userType = activeTab === 'individual' ? 'jobseeker' : 'company';
 
     if (userType === 'jobseeker') {
-      if (!email.trim() || !password) {
-        setLoginError('이메일과 비밀번호를 입력해주세요.');
-        setIsSubmitting(false);
-        return;
-      }
-      try {
-        // 백엔드 LoginRequest 형식: email, password (camelCase, 필수)
-        const { data } = await api.post('/auth/login', {
-          email: email.trim(),
-          password: password ?? '',
-        });
-        const accessToken = data?.accessToken ?? data?.access_token;
-        const refreshToken = data?.refreshToken ?? data?.refresh_token;
-        if (accessToken) {
-          localStorage.setItem('accessToken', accessToken);
-          const userId = getUserIdFromToken(accessToken);
-          if (userId) localStorage.setItem('userId', userId);
-        }
-        if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
-        navigate('/');
-      } catch (error) {
-        const status = error.response?.status;
-        const serverMessage = error.response?.data?.message ?? error.response?.data?.error;
-        const msgStr = typeof serverMessage === 'string' ? serverMessage : '';
-        let message;
-        if (status === 400) {
-          message = '이메일 또는 비밀번호가 일치하지 않습니다.';
-        } else if (status === 500) {
-          // 백엔드 AuthService.login()은 이메일 없음/비밀번호 불일치 시 IllegalArgumentException을 던지고,
-          // @ControllerAdvice가 없어 Spring이 500을 반환함. 따라서 로그인 500 → 계정 불일치로 안내.
-          message = '이메일 또는 비밀번호가 일치하지 않습니다.';
-        } else if (status >= 502) {
-          message = '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
-        } else if (msgStr) {
-          message = msgStr;
-        } else if (error.code === 'ERR_NETWORK' || !error.response) {
-          message = '네트워크 연결을 확인해주세요.';
-        } else {
-          message = '로그인에 실패했습니다.';
-        }
-        setLoginError(message);
-      } finally {
-        setIsSubmitting(false);
-      }
+      // TODO: 실제 로그인 API 연동
+      navigate('/');
       return;
     }
 
     // 기업 로그인: 회사 선택 + 인증코드 입력 필수
     if (!selectedCompany) {
-      setLoginError('기업을 먼저 선택해주세요.');
-      setIsSubmitting(false);
+      alert('기업을 먼저 선택해주세요.');
       return;
     }
 
     if (!authCode.trim()) {
-      setLoginError('인증코드를 입력해주세요.');
-      setIsSubmitting(false);
+      alert('인증코드를 입력해주세요.');
       return;
     }
 
     try {
-      const { data: result } = await api.post('/api/user/login', {
-        auth_code: authCode.trim(),
+      // 기업 회원 로그인: 인증코드만 보내는 로그인 요청
+      const res = await fetch('/api/user/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          auth_code: authCode.trim(),
+        }),
       });
 
-      if (result?.accessToken) localStorage.setItem('accessToken', result.accessToken);
-      if (result?.refreshToken) localStorage.setItem('refreshToken', result.refreshToken);
+      if (!res.ok) {
+        throw new Error('로그인 요청이 실패했습니다.');
+      }
+
+      const result = await res.json();
+      console.log('기업 로그인 성공 응답:', result);
+
+      // 로그인 성공 시 기업용 토큰 저장
       if (result?.success && result?.token) {
-        localStorage.setItem('companyToken', result.token);
-        if (result.expiresAt) localStorage.setItem('companyTokenExpiresAt', result.expiresAt);
+        try {
+          localStorage.setItem('companyToken', result.token);
+          if (result.expiresAt) {
+            localStorage.setItem('companyTokenExpiresAt', result.expiresAt);
+          }
+        } catch (storageError) {
+          console.error('토큰 저장 중 오류 발생:', storageError);
+        }
       }
 
       navigate('/company/dashboard', {
@@ -447,9 +423,7 @@ function Login() {
       });
     } catch (error) {
       console.error(error);
-      setLoginError('기업 로그인에 실패했습니다. 인증코드를 다시 확인해주세요.');
-    } finally {
-      setIsSubmitting(false);
+      alert('기업 로그인에 실패했습니다. 인증코드를 다시 확인해주세요.');
     }
   };
 
@@ -460,18 +434,18 @@ function Login() {
       </LogoIcon>
       <Title>배리어 프리</Title>
       <Subtitle>장애인 구직자와 기업을 연결합니다</Subtitle>
-      
+
       <LoginBox>
         <TabContainer>
           <Tab
             active={activeTab === 'individual'}
-            onClick={() => { setActiveTab('individual'); setLoginError(''); }}
+            onClick={() => setActiveTab('individual')}
           >
             개인 회원
           </Tab>
           <Tab
             active={activeTab === 'company'}
-            onClick={() => { setActiveTab('company'); setLoginError(''); }}
+            onClick={() => setActiveTab('company')}
           >
             기업 회원
           </Tab>
@@ -510,9 +484,6 @@ function Login() {
                   onChange={(e) => setPassword(e.target.value)}
                 />
               </InputGroup>
-              {loginError && (
-                <HelperText style={{ color: '#c53030' }}>{loginError}</HelperText>
-              )}
             </>
           )}
 
@@ -604,23 +575,27 @@ function Login() {
 
                         try {
                           setIsRegisterSubmitting(true);
-                          let result;
-                          try {
-                            const res = await api.post(
-                              '/api/enterprise/company/register',
-                              {
-                                companyName: newCompanyName.trim(),
-                                companyPhone: newCompanyPhone.trim() || '1588-1519',
-                              }
-                            );
-                            result = res.data;
-                          } catch (err) {
-                            if (err.response?.status === 409) {
-                              setRegisterMessage('이미 존재하는 기업입니다.');
-                              return;
-                            }
-                            throw err;
+                          const res = await fetch('/api/enterprise/company/register', {
+                            method: 'POST',
+                            headers: {
+                              'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                              companyName: newCompanyName.trim(),
+                              companyPhone: newCompanyPhone.trim() || '1588-1519',
+                            }),
+                          });
+
+                          if (res.status === 409) {
+                            setRegisterMessage('이미 존재하는 기업입니다.');
+                            return;
                           }
+
+                          if (!res.ok) {
+                            throw new Error('기업 등록에 실패했습니다.');
+                          }
+
+                          const result = await res.json();
 
                           // 1순위: { success: true, companyId: "..." } 형태 (현재 백엔드 응답)
                           // 2순위: { data: { company_id, company_name, ... } } 혹은 평범한 객체
@@ -693,15 +668,10 @@ function Login() {
                   </HelperText>
                 )}
               </InputGroup>
-              {loginError && (
-                <HelperText style={{ color: '#c53030' }}>{loginError}</HelperText>
-              )}
             </>
           )}
 
-          <LoginButton type="submit" disabled={isSubmitting}>
-            {isSubmitting ? '로그인 중...' : '로그인'}
-          </LoginButton>
+          <LoginButton type="submit">로그인</LoginButton>
         </LoginForm>
 
         <SignUpLink>

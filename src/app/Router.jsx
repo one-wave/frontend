@@ -7,6 +7,8 @@ import MyPage from "../pages/user/MyPage";
 import EditMyPage from "../pages/user/EditMyPage";
 import CompanyDashboardPage from "../pages/company/CompanyDashboardPage";
 import JobPostPage from "../pages/company/JobPostPage";
+import CompanyStatePage from "../pages/company/CompanyStatePage";
+import JobPostEditPage from "../pages/company/JobPostEditPage";
 import InterviewAssistantPage from "../pages/user/InterviewAssistantPage";
 import ResumeListPage from "../pages/user/resume/ResumeListPage";
 import ResumeCreatePage from "../pages/user/resume/ResumeCreatePage";
@@ -35,6 +37,9 @@ function Router() {
         {/* 기업 */}
         <Route path="/company/dashboard" element={<CompanyDashboardPage />} />
         <Route path="/company/job-post" element={<JobPostPage />} />
+        <Route path="/company/job-post/new" element={<JobPostEditPage />} />
+        <Route path="/company/job-post/:jobId" element={<JobPostEditPage />} />
+        <Route path="/company/state" element={<CompanyStatePage />} />
 
         {/* 404 */}
         <Route path="*" element={<Navigate to="/" replace />} />
