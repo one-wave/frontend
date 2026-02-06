@@ -185,10 +185,10 @@ function JobCard({ item, onClick }) {
         </div>
 
         <TagsWrapper>
-          {tags.map((tag, idx) => {
+          {tags.map((tag) => {
             const style = getTagStyle(tag);
             return (
-              <TagSpan key={idx} bg={style.bg} color={style.color}>
+              <TagSpan key={tag} bg={style.bg} color={style.color}>
                 #{tag}
               </TagSpan>
             );

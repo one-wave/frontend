@@ -72,28 +72,37 @@ function UserMainPage() {
   const navigate = useNavigate();
   const [searchKeyword, setSearchKeyword] = useState("");
   const [sortBy, setSortBy] = useState("RECENT");
+  
+  // 로그인 여부 확인 (최상단으로 이동)
+  const accessToken = localStorage.getItem("accessToken");
+  const isLoggedIn = !!accessToken;
 
   // 백엔드 GET /api/job-posts — userId는 UUID일 때만 전달 (아니면 400), sortBy는 RECENT|SALARY_HIGH|MATCH_SCORE만
   const { data: jobPostsData, isLoading, isError } = useQuery({
-    queryKey: ["jobPosts", { searchKeyword, sortBy }],
+    queryKey: ["jobPosts", { searchKeyword, sortBy, isLoggedIn }], // 로그인 상태 포함
     queryFn: async () => {
+      // 로그인 상태에 따라 엔드포인트 분기
+      const endpoint = isLoggedIn ? "/job-posts/matched" : "/job-posts";
+      
       const rawUserId = localStorage.getItem("userId");
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
       const userId = rawUserId && uuidRegex.test(rawUserId) ? rawUserId : undefined;
 
       const params = {
-        ...(userId && { userId }),
+        ...(isLoggedIn && userId && { userId }),
         ...(searchKeyword?.trim() && { keyword: searchKeyword.trim() }),
         sortBy: sortBy === "SALARY_LOW" ? "RECENT" : sortBy,
       };
 
-      const response = await api.get("/job-posts", { params });
+      const response = await api.get(endpoint, { params });
       const body = response.data;
       return Array.isArray(body) ? body : body?.content ?? [];
     },
     staleTime: 1000 * 60 * 5, // 5분
   });
 
+  console.log("aaa",jobPostsData);
+  
   // API 응답은 직접 배열로 옴
   const jobs = jobPostsData || [];
 
@@ -135,13 +144,20 @@ function UserMainPage() {
 
           {!isLoading && !isError && (
             <Grid>
-              {jobs.map((item) => (
-                <JobCard
-                  key={item.jobPostId}
-                  item={item}
-                  onClick={() => handleJobClick(item.jobPostId)}
-                />
-              ))}
+              {jobs.map((item) => {
+                // 로그인 상태에 따른 데이터 구조 처리
+                const jobData = isLoggedIn ? item.post : item;
+                const matchScore = isLoggedIn ? item.score : null;
+                
+                return (
+                  <JobCard
+                    key={jobData.jobPostId}
+                    item={jobData}
+                    matchScore={matchScore}
+                    onClick={() => handleJobClick(jobData.jobPostId)}
+                  />
+                );
+              })}
             </Grid>
           )}
         </ContentArea>
