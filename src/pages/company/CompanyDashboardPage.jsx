@@ -370,58 +370,10 @@ function CompanyDashboardPage() {
   const [statusConfirmations, setStatusConfirmations] = useState({}); // 확인 체크박스 상태 (application_id: boolean)
   const [updatingStatus, setUpdatingStatus] = useState(new Set()); // 업데이트 중인 application_id들
 
-  // 공고 목록 가져오기
-  useEffect(() => {
-    const fetchCompanyJobs = async () => {
-      const companyAuthCode = localStorage.getItem("companyAuthCode");
-      if (!companyAuthCode) {
-        setError("기업 인증 정보가 없습니다. 다시 로그인해주세요.");
-        setLoading(false);
-        return;
-      }
-
-      try {
-        setLoading(true);
-        setError("");
-
-        const token = localStorage.getItem("companyToken");
-        const apiBaseUrl = getCompanyApiBaseUrl();
-        const res = await fetch(`${apiBaseUrl}/api/enterprise/company/job`, {
-          headers: token
-            ? {
-                Authorization: `Bearer ${token}`,
-              }
-            : undefined,
-        });
-
-        if (!res.ok) {
-          throw new Error("공고 목록을 불러오지 못했습니다.");
-        }
-
-        const data = await res.json();
-        const allJobs = Array.isArray(data.data) ? data.data : [];
-
-        const filtered = allJobs.filter(
-          (job) => job.company_id === companyAuthCode
-        );
-
-        setJobs(filtered);
-        setTotalApplicants(0);
-      } catch (err) {
-        console.error(err);
-        setError("공고 목록을 불러오는 중 오류가 발생했습니다.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCompanyJobs();
-  }, []);
-
-  // 공고별 지원자 정보 가져오기
-  const fetchApplicantsForJob = async (jobPostId) => {
+  // 공고별 지원자 정보 가져오기 (함수 선언을 먼저)
+  const fetchApplicantsForJob = async (jobPostId, jobName = null) => {
     if (applicants[jobPostId]) {
-      return; // 이미 로드된 경우 스킵
+      return applicants[jobPostId]; // 이미 로드된 경우 반환
     }
 
     try {
@@ -474,7 +426,7 @@ function CompanyDashboardPage() {
           name: fullName,
           initial: initial,
           bg: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
-          role: jobs.find((j) => j.job_post_id === jobPostId)?.job_nm || "지원 직무",
+          role: jobName || "지원 직무",
           type: getDisabilityType(),
           date: appliedDate,
           status: app.status || "서류 대기중", // API에서 받은 상태 사용
@@ -503,14 +455,86 @@ function CompanyDashboardPage() {
         setTotalApplicants(total);
         return updated;
       });
+
+      return formattedApplicants;
     } catch (err) {
       console.error(`공고 ${jobPostId}의 지원자 정보 로드 실패:`, err);
       setApplicants((prev) => ({
         ...prev,
         [jobPostId]: [],
       }));
+      return [];
     } finally {
       setLoadingApplicants((prev) => ({ ...prev, [jobPostId]: false }));
+    }
+  };
+
+  // 공고 목록 가져오기
+  useEffect(() => {
+    const fetchCompanyJobs = async () => {
+      const companyAuthCode = localStorage.getItem("companyAuthCode");
+      if (!companyAuthCode) {
+        setError("기업 인증 정보가 없습니다. 다시 로그인해주세요.");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        setError("");
+
+        const token = localStorage.getItem("companyToken");
+        const apiBaseUrl = getCompanyApiBaseUrl();
+        const res = await fetch(`${apiBaseUrl}/api/enterprise/company/job`, {
+          headers: token
+            ? {
+                Authorization: `Bearer ${token}`,
+              }
+            : undefined,
+        });
+
+        if (!res.ok) {
+          throw new Error("공고 목록을 불러오지 못했습니다.");
+        }
+
+        const data = await res.json();
+        const allJobs = Array.isArray(data.data) ? data.data : [];
+
+        const filtered = allJobs.filter(
+          (job) => job.company_id === companyAuthCode
+        );
+
+        setJobs(filtered);
+        
+        // 공고 목록을 가져온 후 모든 공고의 지원자 정보를 미리 가져오기
+        if (filtered.length > 0) {
+          fetchAllApplicants(filtered);
+        } else {
+          setTotalApplicants(0);
+        }
+      } catch (err) {
+        console.error(err);
+        setError("공고 목록을 불러오는 중 오류가 발생했습니다.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCompanyJobs();
+  }, []);
+
+  // 모든 공고의 지원자 정보를 병렬로 가져오기
+  const fetchAllApplicants = async (jobList) => {
+    if (jobList.length === 0) return;
+
+    try {
+      // 모든 공고의 지원자 정보를 병렬로 가져오기
+      const promises = jobList.map((job) =>
+        fetchApplicantsForJob(job.job_post_id, job.job_nm)
+      );
+      await Promise.all(promises);
+    } catch (err) {
+      console.error("지원자 정보 일괄 로드 실패:", err);
     }
   };
 
@@ -520,8 +544,11 @@ function CompanyDashboardPage() {
       newExpanded.delete(jobPostId);
     } else {
       newExpanded.add(jobPostId);
-      // 공고를 펼칠 때 지원자 정보 가져오기
-      await fetchApplicantsForJob(jobPostId);
+      // 공고를 펼칠 때 지원자 정보가 없으면 가져오기 (이미 로드된 경우는 스킵)
+      const job = jobs.find((j) => j.job_post_id === jobPostId);
+      if (job && !applicants[jobPostId]) {
+        await fetchApplicantsForJob(jobPostId, job.job_nm);
+      }
     }
     setExpandedJobs(newExpanded);
   };
@@ -757,7 +784,7 @@ function CompanyDashboardPage() {
                                       <TextCell>{applicant.role}</TextCell>
                                       <TextCell>{applicant.type}</TextCell>
                                       <TextCell>{applicant.date}</TextCell>
-                                      <div style={{ textAlign: "center" }}>
+                <div style={{ textAlign: "center" }}>
                                         <StatusControlGroup onClick={(e) => e.stopPropagation()}>
                                           <StatusDisplay>
                                             <StatusBadge
@@ -766,7 +793,7 @@ function CompanyDashboardPage() {
                                               border={statusColor.border}
                                             >
                                               {displayStatus}
-                                            </StatusBadge>
+                  </StatusBadge>
                                           </StatusDisplay>
                                           <StatusSelect
                                             value={pendingStatus || applicant.status}
@@ -816,7 +843,7 @@ function CompanyDashboardPage() {
                                             </>
                                           )}
                                         </StatusControlGroup>
-                                      </div>
+                </div>
                                     </ApplicantRow>
 
                                     {isExpanded && (

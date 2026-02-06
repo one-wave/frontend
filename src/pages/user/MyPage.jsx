@@ -2,6 +2,8 @@ import styled from "@emotion/styled";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getProfile, getResumes } from "../../api/Auth";
+import { api } from "../../api/Http";
+import { getCompanyApiBaseUrl } from "../../api/Http";
 import {
   User,
   Crown,
@@ -416,9 +418,37 @@ function MyPage() {
   const [representativeResume, setRepresentativeResume] = useState(null);
   const [loading, setLoading] = useState(true);
   const [profileError, setProfileError] = useState(null);
+  const [applicationStats, setApplicationStats] = useState({
+    totalApplications: 0,
+    interviewScheduled: 0,
+  });
+  const [scrapedCount, setScrapedCount] = useState(0);
+
+  // 스크랩 개수 가져오기
+  const getScrapedCount = () => {
+    try {
+      const scraped = localStorage.getItem("scrapedJobs");
+      const scrapedJobs = scraped ? JSON.parse(scraped) : [];
+      return scrapedJobs.length;
+    } catch {
+      return 0;
+    }
+  };
 
   useEffect(() => {
     let cancelled = false;
+
+    // 초기 스크랩 개수 설정
+    setScrapedCount(getScrapedCount());
+
+    // 스크랩 변경 이벤트 리스너
+    const handleScrapedUpdate = () => {
+      if (!cancelled) {
+        setScrapedCount(getScrapedCount());
+      }
+    };
+
+    window.addEventListener("scrapedJobsUpdated", handleScrapedUpdate);
 
     const load = async () => {
       setLoading(true);
@@ -435,6 +465,58 @@ function MyPage() {
           const rep = list.find((r) => r.isRepresentative) || list[0] || null;
           setRepresentativeResume(rep);
         }
+
+        // 지원 통계 가져오기
+        const userId = localStorage.getItem("userId");
+        if (userId && !cancelled) {
+          try {
+            const apiBaseUrl = getCompanyApiBaseUrl();
+            const token = localStorage.getItem("accessToken");
+            
+            const response = await fetch(
+              `${apiBaseUrl}/api/enterprise/company/applications?userId=${userId}`,
+              {
+                headers: token
+                  ? {
+                      Authorization: `Bearer ${token}`,
+                    }
+                  : undefined,
+              }
+            );
+
+            if (!response.ok) {
+              throw new Error("지원 통계를 불러오지 못했습니다.");
+            }
+
+            const data = await response.json();
+            const allApplications = Array.isArray(data.data)
+              ? data.data
+              : Array.isArray(data)
+              ? data
+              : [];
+
+            if (!cancelled) {
+              // 현재 로그인한 사용자의 user_id와 일치하는 지원 내역만 필터링
+              const currentUserId = localStorage.getItem("userId");
+              const applications = allApplications.filter(
+                (app) => app.user_id === currentUserId
+              );
+
+              const totalApplications = applications.length;
+              const interviewScheduled = applications.filter(
+                (app) => app.status === "면접 예정"
+              ).length;
+
+              setApplicationStats({
+                totalApplications,
+                interviewScheduled,
+              });
+            }
+          } catch (appErr) {
+            console.error("지원 통계 조회 실패:", appErr);
+            // 지원 통계 조회 실패는 무시 (기본값 0 유지)
+          }
+        }
       } catch (err) {
         if (!cancelled) {
           console.error("프로필 조회 실패:", err);
@@ -447,7 +529,10 @@ function MyPage() {
     };
 
     load();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+      window.removeEventListener("scrapedJobsUpdated", handleScrapedUpdate);
+    };
   }, []);
 
   if (loading) {
@@ -610,7 +695,7 @@ function MyPage() {
                 <IconCircle bg="#E3F2FD" color="#1976D2">
                   <Send size={24} />
                 </IconCircle>
-                <Count>3</Count>
+                <Count>{applicationStats.totalApplications}</Count>
                 <Label>지원 완료</Label>
               </ActivityItem>
 
@@ -618,7 +703,7 @@ function MyPage() {
                 <IconCircle bg="#FFF8E1" color="#FFA000">
                   <Calendar size={24} />
                 </IconCircle>
-                <Count>1</Count>
+                <Count>{applicationStats.interviewScheduled}</Count>
                 <Label>면접 예정</Label>
               </ActivityItem>
 
@@ -626,7 +711,7 @@ function MyPage() {
                 <IconCircle bg="#FCE4EC" color="#D81B60">
                   <Bookmark size={24} />
                 </IconCircle>
-                <Count>5</Count>
+                <Count>{scrapedCount}</Count>
                 <Label>스크랩 공고</Label>
               </ActivityItem>
             </ActivityGrid>

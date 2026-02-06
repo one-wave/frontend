@@ -1,5 +1,6 @@
 import styled from "@emotion/styled";
-import { Building2, Clock, MapPin } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Building2, Clock, MapPin, Bookmark } from "lucide-react";
 
 const Card = styled.div`
   background: white;
@@ -22,6 +23,32 @@ const CardHeader = styled.div`
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 12px;
+  position: relative;
+`;
+
+const BookmarkButton = styled.button`
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: ${(props) => (props.$isScraped ? "#FFA000" : "#999")};
+  transition: all 0.2s;
+  z-index: 10;
+
+  &:hover {
+    color: ${(props) => (props.$isScraped ? "#FF8F00" : "#FFA000")};
+    transform: scale(1.1);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
 `;
 
 const CompanyInfo = styled.div`
@@ -119,7 +146,69 @@ const getTagStyle = (tag) => {
   return { bg: "#eef6ff", color: "#0b4da2" };
 };
 
+// 로컬 스토리지에서 스크랩 목록 가져오기
+const getScrapedJobs = () => {
+  try {
+    const scraped = localStorage.getItem("scrapedJobs");
+    return scraped ? JSON.parse(scraped) : [];
+  } catch {
+    return [];
+  }
+};
+
+// 스크랩 목록 저장하기
+const saveScrapedJobs = (jobs) => {
+  try {
+    localStorage.setItem("scrapedJobs", JSON.stringify(jobs));
+    // 스크랩 개수 변경 이벤트 발생 (MyPage에서 감지)
+    window.dispatchEvent(new Event("scrapedJobsUpdated"));
+  } catch (err) {
+    console.error("스크랩 저장 실패:", err);
+  }
+};
+
 function JobCard({ item, onClick }) {
+  const [isScraped, setIsScraped] = useState(false);
+
+  // 컴포넌트 마운트 시 스크랩 상태 확인
+  useEffect(() => {
+    const scrapedJobs = getScrapedJobs();
+    const isJobScraped = scrapedJobs.some(
+      (job) => job.jobPostId === item.jobPostId
+    );
+    setIsScraped(isJobScraped);
+  }, [item.jobPostId]);
+
+  // 스크랩 토글
+  const handleBookmarkClick = (e) => {
+    e.stopPropagation(); // 카드 클릭 이벤트 방지
+
+    const scrapedJobs = getScrapedJobs();
+    const jobIndex = scrapedJobs.findIndex(
+      (job) => job.jobPostId === item.jobPostId
+    );
+
+    if (jobIndex > -1) {
+      // 이미 스크랩된 경우 제거
+      scrapedJobs.splice(jobIndex, 1);
+      setIsScraped(false);
+    } else {
+      // 스크랩 추가
+      scrapedJobs.push({
+        jobPostId: item.jobPostId,
+        jobNm: item.jobNm,
+        companyName: item.companyName,
+        jobLocation: item.jobLocation,
+        salary: item.salary,
+        salaryType: item.salaryType,
+        scrapedAt: new Date().toISOString(),
+      });
+      setIsScraped(true);
+    }
+
+    saveScrapedJobs(scrapedJobs);
+  };
+
   // 급여 표시
   const salaryDisplay = `${item.salaryType} ${(item.salary / 10000).toLocaleString()}만원`;
 
@@ -159,6 +248,13 @@ function JobCard({ item, onClick }) {
               <CardTitle>{item.jobNm}</CardTitle>
             </div>
           </CompanyInfo>
+          <BookmarkButton
+            $isScraped={isScraped}
+            onClick={handleBookmarkClick}
+            aria-label={isScraped ? "스크랩 취소" : "스크랩"}
+          >
+            <Bookmark size={20} fill={isScraped ? "currentColor" : "none"} />
+          </BookmarkButton>
         </CardHeader>
 
         {item.jobLocation && (

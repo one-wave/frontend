@@ -729,10 +729,12 @@ function Login() {
           </LoginButton>
         </LoginForm>
 
-        <SignUpLink>
-          아직 계정이 없으신가요?
-          <a onClick={() => navigate('/signup')}>회원가입</a>
-        </SignUpLink>
+        {activeTab === 'individual' && (
+          <SignUpLink>
+            아직 계정이 없으신가요?
+            <a onClick={() => navigate('/signup')}>회원가입</a>
+          </SignUpLink>
+        )}
       </LoginBox>
 
       {showToast && toastMessage && (
