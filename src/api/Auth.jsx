@@ -43,6 +43,15 @@ export const deleteResume = (resumeId) => {
   return api.delete(`/resumes/${resumeId}`);
 };
 
+/** 음성 이력서 업로드 — POST /api/resumes/voice (multipart "audio", 최대 10MB) */
+export const uploadVoiceResume = (audioBlob) => {
+  const formData = new FormData();
+  formData.append("audio", audioBlob, "recording.webm");
+  return api.post("/resumes/voice", formData, {
+    headers: { "Content-Type": undefined },
+  });
+};
+
 /** 프로필 수정 — PUT /api/profile (ProfileRequest) */
 export const updateProfile = (payload) => {
   return api.put("/profile", payload);
