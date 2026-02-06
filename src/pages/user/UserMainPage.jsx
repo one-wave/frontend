@@ -70,8 +70,13 @@ const Grid = styled.div`
 
 function UserMainPage() {
   const navigate = useNavigate();
-  const [searchKeyword, setSearchKeyword] = useState("");
+  const [searchInput, setSearchInput] = useState(""); // 입력 중인 검색어
+  const [searchKeyword, setSearchKeyword] = useState(""); // 실제 검색에 사용할 키워드
   const [sortBy, setSortBy] = useState("RECENT");
+  
+  const handleSearch = () => {
+    setSearchKeyword(searchInput);
+  };
   
   // 로그인 여부 확인 (최상단으로 이동)
   const accessToken = localStorage.getItem("accessToken");
@@ -106,14 +111,24 @@ function UserMainPage() {
   // API 응답은 직접 배열로 옴
   const jobs = jobPostsData || [];
 
-  const handleJobClick = (jobId) => {
-    navigate(`/user/job/${jobId}`);
+  const handleJobClick = (jobData, matchScore) => {
+    navigate(`/user/job/${jobData.jobPostId}`, { 
+      state: { 
+        jobData,
+        matchScore,
+        isLoggedIn 
+      } 
+    });
   };
 
   return (
     <Container>
       <Header />
-      <HeroSection searchKeyword={searchKeyword} setSearchKeyword={setSearchKeyword} />
+      <HeroSection 
+        searchInput={searchInput} 
+        setSearchInput={setSearchInput}
+        onSearch={handleSearch}
+      />
       
       <MainLayout>
         <ContentArea>
@@ -154,7 +169,7 @@ function UserMainPage() {
                     key={jobData.jobPostId}
                     item={jobData}
                     matchScore={matchScore}
-                    onClick={() => handleJobClick(jobData.jobPostId)}
+                    onClick={() => handleJobClick(jobData, matchScore)}
                   />
                 );
               })}
