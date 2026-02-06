@@ -1,12 +1,12 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Login from "../pages/Login";
-import SignUp from "../pages/SignUp";
-import UserMainPage from "../pages/UserMainPage";
-import JobDetailPage from "../pages/JobDetailPage";
-import MyPage from "../pages/MyPage";
-import CompanyDashboardPage from "../pages/CompanyDashboardPage";
-import JobPostPage from "../pages/JobPostPage";
-import InterviewAssistantPage from "../pages/InterviewAssistantPage";
+import Login from "../pages/auth/Login";
+import SignUp from "../pages/auth/SignUp";
+import UserMainPage from "../pages/user/UserMainPage";
+import JobDetailPage from "../pages/user/JobDetailPage";
+import MyPage from "../pages/user/MyPage";
+import CompanyDashboardPage from "../pages/company/CompanyDashboardPage";
+import JobPostPage from "../pages/company/JobPostPage";
+import InterviewAssistantPage from "../pages/user/InterviewAssistantPage";
 
 function Router() {
   return (

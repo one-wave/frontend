@@ -1,7 +1,7 @@
-import styled from '@emotion/styled';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useState } from 'react';
-import Header from '../shared/Header';
+import styled from "@emotion/styled";
+import { useNavigate, useParams } from "react-router-dom";
+import { useState } from "react";
+import Header from "../../shared/Header";
 
 const Container = styled.div`
   min-height: 100vh;
@@ -65,8 +65,9 @@ const ActionButtons = styled.div`
 
 const Button = styled.button`
   padding: 14px 28px;
-  background-color: ${props => props.primary ? '#667eea' : props.tts ? '#ff6b6b' : '#f0f0f0'};
-  color: ${props => props.primary || props.tts ? 'white' : '#333'};
+  background-color: ${(props) =>
+    props.primary ? "#667eea" : props.tts ? "#ff6b6b" : "#f0f0f0"};
+  color: ${(props) => (props.primary || props.tts ? "white" : "#333")};
   border: none;
   border-radius: 8px;
   cursor: pointer;
@@ -90,7 +91,7 @@ const JobInfo = styled.div`
 
 const InfoSection = styled.div`
   margin-bottom: 32px;
-  
+
   &:last-child {
     margin-bottom: 0;
   }
@@ -156,26 +157,29 @@ function JobDetailPage() {
   const handleTTS = () => {
     setIsSpeaking(!isSpeaking);
     // TTS 로직 구현
-    alert(isSpeaking ? 'TTS 중지' : 'TTS 시작 - 공고 내용을 읽어드립니다');
+    alert(isSpeaking ? "TTS 중지" : "TTS 시작 - 공고 내용을 읽어드립니다");
   };
 
   const handleApply = () => {
-    alert('지원이 완료되었습니다!');
+    alert("지원이 완료되었습니다!");
   };
 
   return (
     <Container>
-      <Header/>
+      <Header />
 
       <Content>
         <JobHeader>
           <JobTitle>웹 프론트엔드 개발자</JobTitle>
           <CompanyName>테크케어</CompanyName>
-          
+
           <InfoText>
-            📍 서울 강남구 테헤란로 123<br />
-            💰 연봉 3,500~4,500만원<br />
-            📆 경력무관 · 정규직<br />
+            📍 서울 강남구 테헤란로 123
+            <br />
+            💰 연봉 3,500~4,500만원
+            <br />
+            📆 경력무관 · 정규직
+            <br />
             👥 채용 인원: 2명
           </InfoText>
 
@@ -187,57 +191,75 @@ function JobDetailPage() {
           </TagList>
 
           <ActionButtons>
-            <Button primary onClick={handleApply}>✉️ 지원하기</Button>
+            <Button primary onClick={handleApply}>
+              ✉️ 지원하기
+            </Button>
             <Button tts onClick={handleTTS}>
-              {isSpeaking ? '🔇 읽기 중지' : '🔊 내용 읽어주기'}
+              {isSpeaking ? "🔇 읽기 중지" : "🔊 내용 읽어주기"}
             </Button>
           </ActionButtons>
         </JobHeader>
 
         <SummaryBox>
           <SummaryTitle>🤖 AI 3줄 요약</SummaryTitle>
-          <SummaryText>• React 기반 웹 개발 업무로 신입/경력 모두 지원 가능합니다.</SummaryText>
-          <SummaryText>• 휠체어 접근 가능하며 주 2~3일 재택근무가 가능합니다.</SummaryText>
-          <SummaryText>• 복지가 우수하며, 장애인 채용 우대 기업입니다.</SummaryText>
+          <SummaryText>
+            • React 기반 웹 개발 업무로 신입/경력 모두 지원 가능합니다.
+          </SummaryText>
+          <SummaryText>
+            • 휠체어 접근 가능하며 주 2~3일 재택근무가 가능합니다.
+          </SummaryText>
+          <SummaryText>
+            • 복지가 우수하며, 장애인 채용 우대 기업입니다.
+          </SummaryText>
         </SummaryBox>
 
         <JobInfo>
           <InfoSection>
             <SectionTitle>주요 업무</SectionTitle>
             <InfoText>
-              • React 기반 웹 서비스 프론트엔드 개발<br />
-              • 사용자 인터페이스(UI) 구현 및 최적화<br />
-              • 백엔드 개발자와 협업하여 API 연동<br />
-              • 웹 접근성(WCAG) 준수 및 개선
+              • React 기반 웹 서비스 프론트엔드 개발
+              <br />
+              • 사용자 인터페이스(UI) 구현 및 최적화
+              <br />
+              • 백엔드 개발자와 협업하여 API 연동
+              <br />• 웹 접근성(WCAG) 준수 및 개선
             </InfoText>
           </InfoSection>
 
           <InfoSection>
             <SectionTitle>자격 요건</SectionTitle>
             <InfoText>
-              • HTML, CSS, JavaScript 기본 지식 보유자<br />
-              • React 또는 Vue.js 등 프레임워크 사용 경험 (학습 경험 포함)<br />
-              • Git을 활용한 협업 경험<br />
-              • 적극적인 커뮤니케이션 능력
+              • HTML, CSS, JavaScript 기본 지식 보유자
+              <br />
+              • React 또는 Vue.js 등 프레임워크 사용 경험 (학습 경험 포함)
+              <br />
+              • Git을 활용한 협업 경험
+              <br />• 적극적인 커뮤니케이션 능력
             </InfoText>
           </InfoSection>
 
           <InfoSection>
             <SectionTitle>우대 사항</SectionTitle>
             <InfoText>
-              • TypeScript 사용 경험<br />
-              • 웹 접근성 관련 개발 경험<br />
-              • 포트폴리오 보유자
+              • TypeScript 사용 경험
+              <br />
+              • 웹 접근성 관련 개발 경험
+              <br />• 포트폴리오 보유자
             </InfoText>
           </InfoSection>
 
           <InfoSection>
             <SectionTitle>편의시설 및 복지</SectionTitle>
             <InfoText>
-              ♿️ <strong>휠체어 접근:</strong> 경사로, 엘리베이터, 전용 화장실 완비<br />
-              🏠 <strong>유연근무:</strong> 주 2~3일 재택근무 가능<br />
-              🅿️ <strong>주차:</strong> 장애인 전용 주차공간 2개<br />
-              🍽️ <strong>식사:</strong> 사내 구내식당 (휠체어 접근 가능)<br />
+              ♿️ <strong>휠체어 접근:</strong> 경사로, 엘리베이터, 전용 화장실
+              완비
+              <br />
+              🏠 <strong>유연근무:</strong> 주 2~3일 재택근무 가능
+              <br />
+              🅿️ <strong>주차:</strong> 장애인 전용 주차공간 2개
+              <br />
+              🍽️ <strong>식사:</strong> 사내 구내식당 (휠체어 접근 가능)
+              <br />
               💼 <strong>기타:</strong> 보조기기 구입 지원금, 의료비 지원
             </InfoText>
           </InfoSection>
@@ -245,10 +267,12 @@ function JobDetailPage() {
           <InfoSection>
             <SectionTitle>근무 조건</SectionTitle>
             <InfoText>
-              • 근무 시간: 09:00 ~ 18:00 (주 5일, 주 40시간)<br />
-              • 근무 형태: 정규직<br />
-              • 시작일: 협의 후 결정<br />
-              • 연봉: 경력에 따라 협의 (3,500만원~)
+              • 근무 시간: 09:00 ~ 18:00 (주 5일, 주 40시간)
+              <br />
+              • 근무 형태: 정규직
+              <br />
+              • 시작일: 협의 후 결정
+              <br />• 연봉: 경력에 따라 협의 (3,500만원~)
             </InfoText>
           </InfoSection>
         </JobInfo>
