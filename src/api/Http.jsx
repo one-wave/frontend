@@ -22,27 +22,28 @@ export function getCompanyApiBaseUrl() {
     return import.meta.env.VITE_COMPANY_API_BASE_URL;
   }
   
-  // 브라우저 환경에서 실행 중인 경우
-  if (typeof window !== 'undefined') {
-    const currentPort = window.location.port;
-    // 3000 포트에서 실행 중이면 절대 URL 사용 (pm2 배포 환경)
-    if (currentPort === '3000' || currentPort === '') {
-      return 'http://34.64.188.189:4000';
-    }
-    // 개발 환경(5173 포트)에서는 프록시 사용
-    if (currentPort === '5173' || import.meta.env.DEV) {
-      return '';
-    }
-    // 기타 프로덕션 환경에서는 절대 URL 사용
+  // 프로덕션 빌드에서는 무조건 절대 URL 사용
+  // import.meta.env.PROD는 빌드 시점에 true로 치환됨
+  if (import.meta.env.PROD) {
     return 'http://34.64.188.189:4000';
   }
   
-  // 서버 사이드 렌더링 등 브라우저가 아닌 환경
-  // 프로덕션 모드이면 절대 URL 사용
-  if (import.meta.env.PROD || import.meta.env.MODE === 'production') {
+  // 브라우저 환경에서 실행 중인 경우 (개발 환경)
+  if (typeof window !== 'undefined') {
+    const currentPort = window.location.port;
+    const currentHost = window.location.hostname;
+    
+    // localhost나 127.0.0.1이고 5173 포트면 개발 환경 (프록시 사용)
+    if ((currentHost === 'localhost' || currentHost === '127.0.0.1') && currentPort === '5173') {
+      return '';
+    }
+    
+    // 그 외의 경우는 프로덕션으로 간주하고 절대 URL 사용
     return 'http://34.64.188.189:4000';
   }
+  
   // 개발 환경에서는 프록시 사용 (빈 문자열 = 상대 경로)
+  // import.meta.env.DEV는 빌드 시점에 false로 치환되므로 여기 도달하지 않음
   return '';
 }
 
