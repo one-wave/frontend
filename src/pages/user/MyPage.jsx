@@ -1,7 +1,7 @@
 import styled from "@emotion/styled";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-// import { api } from "../../api/axios"; // 백엔드 연결 시 주석 해제
+import { getProfile, getResumes } from "../../api/Auth";
 import {
   User,
   Crown,
@@ -18,21 +18,28 @@ import {
 } from "lucide-react";
 import Header from "../../shared/Header";
 
-// --- 목데이터 (백엔드 API 명세와 동일한 구조) ---
-const MOCK_PROFILE_DATA = {
-  lastName: "이",
-  firstName: "수현",
-  email: "suhyeon.lee@example.com",
-  userPhone: "010-9876-5432",
-  birthDate: "1999-05-20",
-  // 아래는 API 명세서의 신체/환경 조건 필드들
-  envBothHandsLabel: "양손작업 가능",
-  envEyeSightLabel: "일상적 활동 가능",
-  envHandWorkLabel: "정밀한 조립 가능",
-  envLiftPowerLabel: "5Kg 이내의 물건을 다룰 수 있음",
-  envLstnTalkLabel: "듣고 말하기에 어려움 없음",
-  envStndWalkLabel: "오랫동안 서있기 가능",
+// 백엔드 GET /api/profile 응답 형식에 맞춤. 표시용 기본값
+const defaultProfileDisplay = {
+  lastName: "",
+  firstName: "",
+  email: "",
+  userPhone: "",
+  birthDate: "",
+  envBothHandsLabel: "정보 없음",
+  envEyeSightLabel: "정보 없음",
+  envHandWorkLabel: "정보 없음",
+  envLiftPowerLabel: "정보 없음",
+  envLstnTalkLabel: "정보 없음",
+  envStndWalkLabel: "정보 없음",
 };
+
+function formatDate(value) {
+  if (!value) return "";
+  const s = typeof value === "string" ? value : (value.dateTime || value);
+  const str = String(s);
+  if (str.length >= 10) return str.slice(0, 10).replace(/-/g, ". ");
+  return str;
+}
 
 // --- Styled Components (스타일 정의) ---
 
@@ -406,29 +413,41 @@ const Label = styled.span`
 function MyPage() {
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
+  const [representativeResume, setRepresentativeResume] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [profileError, setProfileError] = useState(null);
 
   useEffect(() => {
-    // 실제 API 호출 대신 목데이터를 사용하는 로직
-    const fetchProfile = async () => {
-      setLoading(true);
-      try {
-        // 백엔드 통신 시뮬레이션 (0.5초 딜레이)
-        setTimeout(() => {
-          setProfile(MOCK_PROFILE_DATA);
-          setLoading(false);
-        }, 500);
+    let cancelled = false;
 
-        // --- [백엔드 연결 시 사용할 코드] ---
-        // const response = await api.get("/api/profile");
-        // setProfile(response.data);
-        // setLoading(false);
-      } catch (error) {
-        console.error("프로필 조회 실패:", error);
-        setLoading(false);
+    const load = async () => {
+      setLoading(true);
+      setProfileError(null);
+      try {
+        const [profileRes, resumesRes] = await Promise.all([
+          getProfile(),
+          getResumes().catch(() => ({ data: [] })),
+        ]);
+
+        if (!cancelled) {
+          setProfile(profileRes.data);
+          const list = Array.isArray(resumesRes?.data) ? resumesRes.data : [];
+          const rep = list.find((r) => r.isRepresentative) || list[0] || null;
+          setRepresentativeResume(rep);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          console.error("프로필 조회 실패:", err);
+          setProfileError(err.response?.status === 401 ? "로그인이 필요합니다." : "프로필을 불러올 수 없습니다.");
+          setProfile(null);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
       }
     };
-    fetchProfile();
+
+    load();
+    return () => { cancelled = true; };
   }, []);
 
   if (loading) {
@@ -439,8 +458,29 @@ function MyPage() {
     );
   }
 
-  // 데이터가 없을 경우를 대비한 안전 장치 (초기값은 목데이터)
-  const user = profile || MOCK_PROFILE_DATA;
+  if (profileError) {
+    return (
+      <Container>
+        <Header />
+        <Content>
+          <Card>
+            <ProfileSection>
+              <HelperText style={{ color: "#dc2626", marginBottom: 16 }}>{profileError}</HelperText>
+              <ActionButton primary onClick={() => navigate("/login")}>
+                로그인
+              </ActionButton>
+            </ProfileSection>
+          </Card>
+        </Content>
+      </Container>
+    );
+  }
+
+  const user = {
+    ...defaultProfileDisplay,
+    ...profile,
+    birthDate: profile?.birthDate != null ? formatDate(profile.birthDate) : "",
+  };
 
   return (
     <Container>
@@ -521,7 +561,7 @@ function MyPage() {
           </ProfileSection>
         </Card>
 
-        {/* 2. 대표 이력서 (이름: 이수현) */}
+        {/* 2. 대표 이력서 (백엔드 GET /api/resumes 중 isRepresentative 또는 첫 번째) */}
         <Card>
           <ResumeHeader>
             <Crown size={20} fill="white" /> 나의 대표 이력서
@@ -529,28 +569,35 @@ function MyPage() {
           <ResumeBody>
             <HelperText>기업에게 가장 먼저 보여지는 이력서입니다.</HelperText>
 
-            {/* 목데이터 이름에 맞춰 제목 수정 */}
-            <ResumeTitle>
-              웹 프론트엔드 개발자_{user.lastName}
-              {user.firstName}_최종
-            </ResumeTitle>
-
-            <InfoGrid>
-              <InfoBox>
-                <label>희망 직무</label>
-                <p>프론트엔드 개발 (React)</p>
-              </InfoBox>
-              <InfoBox>
-                <label>최근 수정일</label>
-                <p>2026. 02. 06</p>
-              </InfoBox>
-            </InfoGrid>
-
-            <ButtonGroup>
-              <ActionButton primary onClick={() => navigate("/user/resumes")}>
-                <FolderOpen size={18} /> 전체 이력서
-              </ActionButton>
-            </ButtonGroup>
+            {representativeResume ? (
+              <>
+                <ResumeTitle>{representativeResume.resumeTitle || "제목 없음"}</ResumeTitle>
+                <InfoGrid>
+                  <InfoBox>
+                    <label>최근 수정일</label>
+                    <p>{formatDate(representativeResume.updatedAt) || "—"}</p>
+                  </InfoBox>
+                </InfoGrid>
+                <ButtonGroup>
+                  <ActionButton primary onClick={() => navigate(`/user/resumes/${representativeResume.resumeId}`)}>
+                    <FolderOpen size={18} /> 이력서 보기
+                  </ActionButton>
+                  <ActionButton onClick={() => navigate("/user/resumes")}>
+                    <FolderOpen size={18} /> 전체 이력서
+                  </ActionButton>
+                </ButtonGroup>
+              </>
+            ) : (
+              <>
+                <ResumeTitle>대표 이력서를 설정해주세요</ResumeTitle>
+                <HelperText>이력서를 작성한 뒤 대표로 지정하면 기업에 노출됩니다.</HelperText>
+                <ButtonGroup>
+                  <ActionButton primary onClick={() => navigate("/user/resumes")}>
+                    <FolderOpen size={18} /> 이력서 목록
+                  </ActionButton>
+                </ButtonGroup>
+              </>
+            )}
           </ResumeBody>
         </Card>
 

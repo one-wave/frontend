@@ -2,7 +2,7 @@ import { useState } from 'react';
 import styled from '@emotion/styled';
 import { useNavigate } from 'react-router-dom';
 import { User, Eye, EyeOff, Lock, Mail, UserPlus } from 'lucide-react';
-import { api } from '../../api/Http';
+import { userSignup } from '../../api/Auth';
 
 // 백엔드 SignupRequest / EnvCondition enum 값 (value=API 전송값, label=화면 표시)
 const ENV_BOTH_HANDS = [
@@ -298,7 +298,7 @@ const Signup = () => {
         envLstnTalk,
         envStndWalk,
       };
-      const { data } = await api.post('/auth/signup', payload);
+      const { data } = await userSignup(payload);
       const accessToken = data?.accessToken ?? data?.access_token;
       const refreshToken = data?.refreshToken ?? data?.refresh_token;
       if (accessToken) localStorage.setItem('accessToken', accessToken);

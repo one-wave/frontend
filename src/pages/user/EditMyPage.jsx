@@ -1,27 +1,59 @@
-/**
- * 프로필 수정 페이지.
- * - 기본 정보: PUT /api/profile
- * - 비밀번호 변경: PATCH /api/profile/password (모달에서 분리)
- */
 import styled from "@emotion/styled";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Lock, Activity } from "lucide-react";
 import Header from "../../shared/Header";
+import { getProfile, updateProfile, changePassword } from "../../api/Auth";
 
-const MOCK_PROFILE_DATA = {
-  lastName: "이",
-  firstName: "수현",
-  email: "suhyeon.lee@example.com",
-  userPhone: "010-9876-5432",
-  birthDate: "1999-05-20",
-  envBothHandsLabel: "양손작업 가능",
-  envEyeSightLabel: "일상적 활동 가능",
-  envHandWorkLabel: "정밀한 조립 가능",
-  envLiftPowerLabel: "5Kg 이내의 물건을 다룰 수 있음",
-  envLstnTalkLabel: "듣고 말하기에 어려움 없음",
-  envStndWalkLabel: "오랫동안 서있기 가능",
-};
+
+const ENV_BOTH_HANDS = [
+  { value: "IMPOSSIBLE", label: "불가능" },
+  { value: "NO_INFO", label: "정보없음" },
+  { value: "ONE_HAND", label: "한손작업 가능" },
+  { value: "ONE_HAND_ASSIST", label: "한손보조작업 가능" },
+  { value: "BOTH_HANDS", label: "양손작업 가능" },
+];
+const ENV_EYE_SIGHT = [
+  { value: "IMPOSSIBLE", label: "불가능" },
+  { value: "NO_INFO", label: "정보없음" },
+  { value: "LARGE_PRINT", label: "비교적 큰 인쇄물을 읽을 수 있음" },
+  { value: "DAILY_ACTIVITY", label: "일상적 활동 가능" },
+  { value: "FINE_PRINT", label: "아주 작은 글씨를 읽을 수 있음" },
+];
+const ENV_HAND_WORK = [
+  { value: "IMPOSSIBLE", label: "불가능" },
+  { value: "NO_INFO", label: "정보없음" },
+  { value: "LARGE_ASSEMBLY", label: "큰 물품 조립가능" },
+  { value: "SMALL_ASSEMBLY", label: "작은 물품 조립가능" },
+  { value: "PRECISION", label: "정밀한 작업가능" },
+];
+const ENV_LIFT_POWER = [
+  { value: "IMPOSSIBLE", label: "불가능" },
+  { value: "NO_INFO", label: "정보없음" },
+  { value: "UNDER_5KG", label: "5Kg 이내의 물건을 다룰 수 있음" },
+  { value: "UNDER_20KG", label: "5~20Kg의 물건을 다룰 수 있음" },
+  { value: "OVER_20KG", label: "20Kg 이상의 물건을 다룰 수 있음" },
+];
+const ENV_LSTN_TALK = [
+  { value: "IMPOSSIBLE", label: "불가능" },
+  { value: "NO_INFO", label: "정보없음" },
+  { value: "DIFFICULT", label: "듣고 말하는 작업 어려움" },
+  { value: "SIMPLE", label: "간단한 듣고 말하기 가능" },
+  { value: "FLUENT", label: "듣고 말하기에 어려움 없음" },
+];
+const ENV_STND_WALK = [
+  { value: "IMPOSSIBLE", label: "불가능" },
+  { value: "NO_INFO", label: "정보없음" },
+  { value: "DIFFICULT", label: "서거나 걷는 일 어려움" },
+  { value: "PARTIAL", label: "일부 서서하는 작업 가능" },
+  { value: "PROLONGED", label: "오랫동안 가능" },
+];
+
+function toDateValue(v) {
+  if (!v) return "";
+  const s = typeof v === "string" ? v : (v.dateTime != null ? v.dateTime : String(v));
+  return String(s).slice(0, 10);
+}
 
 const Container = styled.div`
   width: 100%;
@@ -168,16 +200,36 @@ const CapabilityItem = styled.div`
     font-weight: 700;
     color: #1b3a6b;
   }
-  input {
+  select {
     width: 100%;
     padding: 12px 14px;
     border: 1px solid #e2e8f0;
     border-radius: 8px;
     font-size: 0.95rem;
     outline: none;
+    background: white;
     &:focus {
       border-color: #1b3a6b;
     }
+  }
+`;
+
+const ReadOnlyField = styled.div`
+  margin-bottom: 16px;
+  label {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #4a5568;
+    margin-bottom: 6px;
+  }
+  p {
+    margin: 0;
+    padding: 12px 14px;
+    background: #f7fafc;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    color: #4a5568;
   }
 `;
 
@@ -288,74 +340,120 @@ const LoadingMsg = styled.p`
   padding: 60px 20px;
 `;
 
+const ErrorMsg = styled.p`
+  font-size: 0.9rem;
+  color: #dc2626;
+  margin: 0 0 16px 0;
+`;
+
 function EditMyPage() {
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [profileError, setProfileError] = useState(null);
+  const [saveError, setSaveError] = useState("");
+  const [saving, setSaving] = useState(false);
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
     newPassword: "",
     confirmPassword: "",
   });
+  const [passwordError, setPasswordError] = useState("");
+  const [passwordSubmitting, setPasswordSubmitting] = useState(false);
 
   useEffect(() => {
-    const fetchProfile = async () => {
+    let cancelled = false;
+    const load = async () => {
       setLoading(true);
+      setProfileError(null);
       try {
-        setTimeout(() => {
-          setProfile({ ...MOCK_PROFILE_DATA });
-          setLoading(false);
-        }, 400);
+        const { data } = await getProfile();
+        if (!cancelled) setProfile(data);
       } catch (err) {
-        console.error("프로필 조회 실패:", err);
-        setLoading(false);
+        if (!cancelled) {
+          setProfileError(err.response?.status === 401 ? "로그인이 필요합니다." : "프로필을 불러올 수 없습니다.");
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
       }
     };
-    fetchProfile();
+    load();
+    return () => { cancelled = true; };
   }, []);
 
-  const handleProfileSubmit = (e) => {
+  const handleProfileSubmit = async (e) => {
     e.preventDefault();
+    setSaveError("");
     const form = e.target;
+    const userPhone = form.userPhone?.value?.trim() || null;
+    const birthDateRaw = form.birthDate?.value?.trim();
+    const birthDate = birthDateRaw || null;
     const payload = {
-      lastName: form.lastName?.value?.trim() ?? "",
-      firstName: form.firstName?.value?.trim() ?? "",
-      email: form.email?.value?.trim() ?? "",
-      userPhone: form.userPhone?.value?.trim() ?? "",
-      birthDate: form.birthDate?.value?.trim() ?? "",
-      envBothHandsLabel: form.envBothHandsLabel?.value?.trim() ?? "",
-      envEyeSightLabel: form.envEyeSightLabel?.value?.trim() ?? "",
-      envHandWorkLabel: form.envHandWorkLabel?.value?.trim() ?? "",
-      envLiftPowerLabel: form.envLiftPowerLabel?.value?.trim() ?? "",
-      envLstnTalkLabel: form.envLstnTalkLabel?.value?.trim() ?? "",
-      envStndWalkLabel: form.envStndWalkLabel?.value?.trim() ?? "",
+      userPhone,
+      birthDate,
+      envBothHands: form.envBothHands?.value ?? "BOTH_HANDS",
+      envEyeSight: form.envEyeSight?.value ?? "DAILY_ACTIVITY",
+      envHandWork: form.envHandWork?.value ?? "SMALL_ASSEMBLY",
+      envLiftPower: form.envLiftPower?.value ?? "UNDER_5KG",
+      envLstnTalk: form.envLstnTalk?.value ?? "FLUENT",
+      envStndWalk: form.envStndWalk?.value ?? "PROLONGED",
     };
-    console.log("PUT /api/profile", payload);
-    alert("프로필이 저장되었습니다. (API 연동 후 실제 반영)");
-    navigate("/user/mypage");
+    setSaving(true);
+    try {
+      await updateProfile(payload);
+      navigate("/user/mypage");
+    } catch (err) {
+      const msg = err.response?.data?.message ?? err.response?.data?.error;
+      setSaveError(typeof msg === "string" ? msg : "저장에 실패했습니다. 다시 시도해주세요.");
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const openPasswordModal = () => setPasswordModalOpen(true);
+  const openPasswordModal = () => {
+    setPasswordModalOpen(true);
+    setPasswordError("");
+    setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
+  };
   const closePasswordModal = () => {
     setPasswordModalOpen(false);
     setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
+    setPasswordError("");
   };
 
-  const handlePasswordSubmit = (e) => {
+  const handlePasswordSubmit = async (e) => {
     e.preventDefault();
+    setPasswordError("");
     const { currentPassword, newPassword, confirmPassword } = passwordForm;
-    if (!newPassword || newPassword !== confirmPassword) {
-      alert("새 비밀번호와 확인이 일치하지 않습니다.");
+    if (!currentPassword.trim()) {
+      setPasswordError("현재 비밀번호를 입력해주세요.");
       return;
     }
-    if (newPassword.length < 8) {
-      alert("비밀번호는 8자 이상으로 설정해주세요.");
+    if (!newPassword || newPassword.length < 8) {
+      setPasswordError("새 비밀번호는 8자 이상으로 설정해주세요.");
       return;
     }
-    console.log("PATCH /api/profile/password", { currentPassword, newPassword });
-    alert("비밀번호가 변경되었습니다. (API 연동 후 실제 반영)");
-    closePasswordModal();
+    if (newPassword !== confirmPassword) {
+      setPasswordError("새 비밀번호와 확인이 일치하지 않습니다.");
+      return;
+    }
+    setPasswordSubmitting(true);
+    try {
+      await changePassword({ currentPassword, newPassword });
+      closePasswordModal();
+      setPasswordModalOpen(false);
+    } catch (err) {
+      const status = err.response?.status;
+      const msg = err.response?.data?.message ?? err.response?.data?.error;
+      if (status === 400) {
+        setPasswordError(typeof msg === "string" ? msg : "현재 비밀번호가 일치하지 않습니다.");
+      } else {
+        setPasswordError("비밀번호 변경에 실패했습니다. 다시 시도해주세요.");
+      }
+    } finally {
+      setPasswordSubmitting(false);
+    }
   };
 
   if (loading) {
@@ -372,7 +470,28 @@ function EditMyPage() {
     );
   }
 
-  const user = profile ?? MOCK_PROFILE_DATA;
+  if (profileError) {
+    return (
+      <Container>
+        <Header />
+        <Content>
+          <BackBtn type="button" onClick={() => navigate("/user/mypage")}>
+            <ArrowLeft size={18} /> 마이페이지
+          </BackBtn>
+          <Card>
+            <FormInner>
+              <ErrorMsg>{profileError}</ErrorMsg>
+              <SaveBtn type="button" onClick={() => navigate("/login")}>
+                로그인
+              </SaveBtn>
+            </FormInner>
+          </Card>
+        </Content>
+      </Container>
+    );
+  }
+
+  const user = profile ?? {};
 
   return (
     <Container>
@@ -394,40 +513,25 @@ function EditMyPage() {
             <form onSubmit={handleProfileSubmit}>
               <SectionTitle>기본 정보</SectionTitle>
               <Row>
-                <Field>
+                <ReadOnlyField>
                   <label>성</label>
-                  <input
-                    name="lastName"
-                    type="text"
-                    defaultValue={user.lastName}
-                    placeholder="이"
-                  />
-                </Field>
-                <Field>
+                  <p>{user.lastName ?? "—"}</p>
+                </ReadOnlyField>
+                <ReadOnlyField>
                   <label>이름</label>
-                  <input
-                    name="firstName"
-                    type="text"
-                    defaultValue={user.firstName}
-                    placeholder="수현"
-                  />
-                </Field>
+                  <p>{user.firstName ?? "—"}</p>
+                </ReadOnlyField>
               </Row>
-              <Field>
+              <ReadOnlyField>
                 <label>이메일</label>
-                <input
-                  name="email"
-                  type="email"
-                  defaultValue={user.email}
-                  placeholder="example@email.com"
-                />
-              </Field>
+                <p>{user.email ?? "—"}</p>
+              </ReadOnlyField>
               <Field>
                 <label>전화번호</label>
                 <input
                   name="userPhone"
                   type="tel"
-                  defaultValue={user.userPhone}
+                  defaultValue={user.userPhone ?? ""}
                   placeholder="010-0000-0000"
                 />
               </Field>
@@ -436,7 +540,7 @@ function EditMyPage() {
                 <input
                   name="birthDate"
                   type="date"
-                  defaultValue={user.birthDate}
+                  defaultValue={toDateValue(user.birthDate)}
                 />
               </Field>
 
@@ -446,62 +550,57 @@ function EditMyPage() {
               <CapabilityGrid>
                 <CapabilityItem>
                   <label>✋ 양손 작업</label>
-                  <input
-                    name="envBothHandsLabel"
-                    type="text"
-                    defaultValue={user.envBothHandsLabel}
-                    placeholder="양손작업 가능"
-                  />
+                  <select name="envBothHands" defaultValue={user.envBothHands ?? "BOTH_HANDS"}>
+                    {ENV_BOTH_HANDS.map((o) => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
                 </CapabilityItem>
                 <CapabilityItem>
                   <label>👁 시력 활동</label>
-                  <input
-                    name="envEyeSightLabel"
-                    type="text"
-                    defaultValue={user.envEyeSightLabel}
-                    placeholder="일상적 활동 가능"
-                  />
+                  <select name="envEyeSight" defaultValue={user.envEyeSight ?? "DAILY_ACTIVITY"}>
+                    {ENV_EYE_SIGHT.map((o) => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
                 </CapabilityItem>
                 <CapabilityItem>
-                  <label>🔧 정밀 작업(손)</label>
-                  <input
-                    name="envHandWorkLabel"
-                    type="text"
-                    defaultValue={user.envHandWorkLabel}
-                    placeholder="정밀한 조립 가능"
-                  />
+                  <label>{"🔧 정밀 작업(손)"}</label>
+                  <select name="envHandWork" defaultValue={user.envHandWork ?? "SMALL_ASSEMBLY"}>
+                    {ENV_HAND_WORK.map((o) => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
                 </CapabilityItem>
                 <CapabilityItem>
                   <label>💪 들어올리기</label>
-                  <input
-                    name="envLiftPowerLabel"
-                    type="text"
-                    defaultValue={user.envLiftPowerLabel}
-                    placeholder="5Kg 이내의 물건을 다룰 수 있음"
-                  />
+                  <select name="envLiftPower" defaultValue={user.envLiftPower ?? "UNDER_5KG"}>
+                    {ENV_LIFT_POWER.map((o) => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
                 </CapabilityItem>
                 <CapabilityItem>
                   <label>🗣 듣고 말하기</label>
-                  <input
-                    name="envLstnTalkLabel"
-                    type="text"
-                    defaultValue={user.envLstnTalkLabel}
-                    placeholder="듣고 말하기에 어려움 없음"
-                  />
+                  <select name="envLstnTalk" defaultValue={user.envLstnTalk ?? "FLUENT"}>
+                    {ENV_LSTN_TALK.map((o) => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
                 </CapabilityItem>
                 <CapabilityItem>
                   <label>🚶 서있기/보행</label>
-                  <input
-                    name="envStndWalkLabel"
-                    type="text"
-                    defaultValue={user.envStndWalkLabel}
-                    placeholder="오랫동안 서있기 가능"
-                  />
+                  <select name="envStndWalk" defaultValue={user.envStndWalk ?? "PROLONGED"}>
+                    {ENV_STND_WALK.map((o) => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
                 </CapabilityItem>
               </CapabilityGrid>
 
-              <SaveBtn type="submit" style={{ marginTop: "24px" }}>
-                저장하기
+              {saveError && <ErrorMsg>{saveError}</ErrorMsg>}
+              <SaveBtn type="submit" style={{ marginTop: "24px" }} disabled={saving}>
+                {saving ? "저장 중..." : "저장하기"}
               </SaveBtn>
             </form>
           </FormInner>
@@ -551,12 +650,13 @@ function EditMyPage() {
                   autoComplete="new-password"
                 />
               </ModalField>
+              {passwordError && <ErrorMsg>{passwordError}</ErrorMsg>}
               <ModalActions>
-                <ModalBtn type="button" onClick={closePasswordModal}>
+                <ModalBtn type="button" onClick={closePasswordModal} disabled={passwordSubmitting}>
                   취소
                 </ModalBtn>
-                <ModalBtn type="submit" $primary>
-                  변경하기
+                <ModalBtn type="submit" $primary disabled={passwordSubmitting}>
+                  {passwordSubmitting ? "변경 중..." : "변경하기"}
                 </ModalBtn>
               </ModalActions>
             </form>
