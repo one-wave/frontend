@@ -448,7 +448,6 @@ function Login() {
       }
 
       const result = await res.json();
-      console.log('기업 로그인 성공 응답:', result);
 
       // 로그인 성공 시 기업용 토큰 저장
       if (result?.success && result?.token) {

@@ -106,8 +106,6 @@ function UserMainPage() {
     staleTime: 1000 * 60 * 5, // 5분
   });
 
-  console.log("aaa",jobPostsData);
-  
   // API 응답은 직접 배열로 옴
   const jobs = jobPostsData || [];
 
