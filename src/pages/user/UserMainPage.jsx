@@ -6,6 +6,7 @@ import { api } from "../../api/Http";
 import Header from "../../shared/Header";
 import HeroSection from "../../features/UserMainPage/HeroSection";
 import JobCard from "../../features/UserMainPage/JobCard";
+import WorkAssistantBanner from "../../features/UserMainPage/WorkAssistantBanner";
 
 // --- Styled Components ---
 
@@ -190,6 +191,7 @@ function UserMainPage() {
       
       <MainLayout>
         <ContentArea>
+          <WorkAssistantBanner />
           <CountHeader>
             <div>
               총 <strong>{totalElements}</strong>건의 채용공고

@@ -10,10 +10,12 @@ import JobPostPage from "../pages/company/JobPostPage";
 import CompanyStatePage from "../pages/company/CompanyStatePage";
 import JobPostEditPage from "../pages/company/JobPostEditPage";
 import InterviewAssistantPage from "../pages/user/InterviewAssistantPage";
+import WorkAssistantPage from "../pages/user/WorkAssistantPage";
 import ResumeListPage from "../pages/user/resume/ResumeListPage";
 import ResumeCreatePage from "../pages/user/resume/ResumeCreatePage";
 import ResumeDetailPage from "../pages/user/resume/ResumeDetailPage";
 import ResumeEditorPage from "../pages/user/resume/ResumeEditorPage";
+import NotFoundPage from "../pages/NotFoundPage";
 
 function Router() {
   return (
@@ -29,6 +31,7 @@ function Router() {
         <Route path="/user/mypage" element={<MyPage />} />
         <Route path="/user/profile/edit" element={<EditMyPage />} />
         <Route path="/user/interview" element={<InterviewAssistantPage />} />
+        <Route path="/user/work-assistants" element={<WorkAssistantPage />} />
         <Route path="/user/resumes" element={<ResumeListPage />} />
         <Route path="/user/resumes/new" element={<ResumeCreatePage />} />
         <Route path="/user/resumes/:resumeId" element={<ResumeDetailPage />} />
@@ -42,7 +45,7 @@ function Router() {
         <Route path="/company/state" element={<CompanyStatePage />} />
 
         {/* 404 */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
   );
