@@ -1,6 +1,7 @@
 import styled from "@emotion/styled";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { getCompanyApiBaseUrl } from "../../api/Http";
 import {
   FileText,
   Briefcase,
@@ -391,7 +392,8 @@ function JobPostPage() {
         setJobsError("");
 
         const token = localStorage.getItem("companyToken");
-        const res = await fetch("/api/enterprise/company/job", {
+        const apiBaseUrl = getCompanyApiBaseUrl();
+        const res = await fetch(`${apiBaseUrl}/api/enterprise/company/job`, {
           headers: token
             ? {
                 Authorization: `Bearer ${token}`,

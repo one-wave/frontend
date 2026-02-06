@@ -2,6 +2,7 @@ import styled from "@emotion/styled";
 import { useEffect, useState } from "react";
 import { TrendingUp, DollarSign, Award, Building2, Handshake, Shield, MapPin, Users, X, Briefcase } from "lucide-react";
 import CompanyLayout from "../../shared/CompanyHeader";
+import { getCompanyApiBaseUrl } from "../../api/Http";
 
 const StateBody = styled.div`
   padding: 40px;
@@ -538,7 +539,8 @@ function CompanyStatePage() {
         setError("");
         
         const token = localStorage.getItem("companyToken");
-        const res = await fetch("/api/enterprise/company/region", {
+        const apiBaseUrl = getCompanyApiBaseUrl();
+        const res = await fetch(`${apiBaseUrl}/api/enterprise/company/region`, {
           headers: token
             ? {
                 Authorization: `Bearer ${token}`,
@@ -569,7 +571,8 @@ function CompanyStatePage() {
       try {
         setJobsLoading(true);
         const token = localStorage.getItem("companyToken");
-        const res = await fetch("/api/enterprise/company/job", {
+        const apiBaseUrl = getCompanyApiBaseUrl();
+        const res = await fetch(`${apiBaseUrl}/api/enterprise/company/job`, {
           headers: token
             ? {
                 Authorization: `Bearer ${token}`,
