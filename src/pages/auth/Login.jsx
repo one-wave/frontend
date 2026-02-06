@@ -403,13 +403,15 @@ function Login() {
       const result = await res.json();
       console.log('기업 로그인 성공 응답:', result);
 
-      // 로그인 성공 시 기업용 토큰 저장
+      // 로그인 성공 시 기업용 토큰/인증 코드 저장
       if (result?.success && result?.token) {
         try {
           localStorage.setItem('companyToken', result.token);
           if (result.expiresAt) {
             localStorage.setItem('companyTokenExpiresAt', result.expiresAt);
           }
+          // 현재 로그인에 사용한 인증코드 = 회사 UUID
+          localStorage.setItem('companyAuthCode', authCode.trim());
         } catch (storageError) {
           console.error('토큰 저장 중 오류 발생:', storageError);
         }
