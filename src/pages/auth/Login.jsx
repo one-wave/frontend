@@ -166,6 +166,8 @@ function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
+  // TODO: 로그인후 라우팅 로직은 userType에 따라 하는게 아닌 로그인후 로그인 정보의 userType에 따라 라우팅
+  // TODO: email과 password state에 저장된 값을 백엔드로 전달
   const handleLogin = (e) => {
     e.preventDefault();
     
@@ -204,7 +206,7 @@ function Login() {
 
         <FormHeader>
           <FormTitle>
-            {activeTab === 'individual' ? '개인 회원(구직자) 로그인' : '기업 회원 로그인'}
+            {activeTab === 'individual' ? '개인 회원 로그인' : '기업 회원 로그인'}
           </FormTitle>
           <FormDescription>
             이메일과 비밀번호를 입력하여 로그인하세요.
