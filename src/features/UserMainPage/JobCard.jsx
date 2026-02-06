@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-import { Bookmark, Building2, Clock, MapPin } from "lucide-react";
+import { Building2, Clock, MapPin } from "lucide-react";
 
 const Card = styled.div`
   background: white;
@@ -159,7 +159,6 @@ function JobCard({ item, onClick }) {
               <CardTitle>{item.jobNm}</CardTitle>
             </div>
           </CompanyInfo>
-          <Bookmark size={20} color="#ccc" />
         </CardHeader>
 
         {item.jobLocation && (
