@@ -167,7 +167,7 @@ function CompanyLayout({ children, headerTitle, headerSubtitle }) {
             $active={isCompanyState}
             onClick={() => navigate("/company/state")}
           >
-            <Settings size={20} /> 기업 상태
+            <Settings size={20} /> 공고 현황
           </MenuItem>
         </Menu>
         <SidebarFooter>기업 관리자 포털 v1.0</SidebarFooter>
