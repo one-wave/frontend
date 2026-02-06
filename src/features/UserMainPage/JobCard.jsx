@@ -23,23 +23,39 @@ const CardHeader = styled.div`
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 12px;
-  position: relative;
+`;
+
+const CardActions = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+`;
+
+const ScoreBadge = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  background: ${(p) => p.$bg};
+  color: ${(p) => p.$color};
+  white-space: nowrap;
+  line-height: 1;
 `;
 
 const BookmarkButton = styled.button`
-  position: absolute;
-  top: 0;
-  right: 0;
   background: none;
   border: none;
   cursor: pointer;
-  padding: 8px;
+  padding: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: ${(props) => (props.$isScraped ? "#FFA000" : "#999")};
   transition: all 0.2s;
-  z-index: 10;
 
   &:hover {
     color: ${(props) => (props.$isScraped ? "#FF8F00" : "#FFA000")};
@@ -138,6 +154,13 @@ const ApplyButton = styled.button`
   }
 `;
 
+const getScoreStyle = (score) => {
+  if (score >= 80) return { bg: "#e8f5e9", color: "#2e7d32" };
+  if (score >= 60) return { bg: "#e3f2fd", color: "#1565c0" };
+  if (score >= 40) return { bg: "#fff8e1", color: "#ef6c00" };
+  return { bg: "#fce4ec", color: "#c62828" };
+};
+
 const getTagStyle = (tag) => {
   if (tag.includes("재택") || tag.includes("신입"))
     return { bg: "#e6f9ed", color: "#00a84e" };
@@ -167,7 +190,7 @@ const saveScrapedJobs = (jobs) => {
   }
 };
 
-function JobCard({ item, onClick }) {
+function JobCard({ item, matchScore, onClick }) {
   const [isScraped, setIsScraped] = useState(false);
 
   // 컴포넌트 마운트 시 스크랩 상태 확인
@@ -248,13 +271,23 @@ function JobCard({ item, onClick }) {
               <CardTitle>{item.jobNm}</CardTitle>
             </div>
           </CompanyInfo>
-          <BookmarkButton
-            $isScraped={isScraped}
-            onClick={handleBookmarkClick}
-            aria-label={isScraped ? "스크랩 취소" : "스크랩"}
-          >
-            <Bookmark size={20} fill={isScraped ? "currentColor" : "none"} />
-          </BookmarkButton>
+          <CardActions>
+            {matchScore != null && (() => {
+              const s = getScoreStyle(matchScore);
+              return (
+                <ScoreBadge $bg={s.bg} $color={s.color}>
+                  {matchScore}점
+                </ScoreBadge>
+              );
+            })()}
+            <BookmarkButton
+              $isScraped={isScraped}
+              onClick={handleBookmarkClick}
+              aria-label={isScraped ? "스크랩 취소" : "스크랩"}
+            >
+              <Bookmark size={20} fill={isScraped ? "currentColor" : "none"} />
+            </BookmarkButton>
+          </CardActions>
         </CardHeader>
 
         {item.jobLocation && (

@@ -7,6 +7,7 @@ import Header from "../../shared/Header";
 import HeroSection from "../../features/UserMainPage/HeroSection";
 import JobCard from "../../features/UserMainPage/JobCard";
 import WorkAssistantBanner from "../../features/UserMainPage/WorkAssistantBanner";
+import MatchScoreTooltip from "../../features/UserMainPage/MatchScoreTooltip";
 import { GridSkeleton, JobCardSkeleton, SkeletonBox } from "../../components/Skeleton";
 
 // --- Styled Components ---
@@ -38,6 +39,11 @@ const CountHeader = styled.div`
   strong {
     color: #0b4da2;
   }
+`;
+
+const SortArea = styled.div`
+  display: flex;
+  align-items: center;
 `;
 
 const SortDropdown = styled.select`
@@ -197,14 +203,17 @@ function UserMainPage() {
             <div>
               총 <strong>{totalElements}</strong>건의 채용공고
             </div>
-            <SortDropdown value={sortBy} onChange={(e) => {
-              setSortBy(e.target.value);
-              setPage(0); // 정렬 변경 시 첫 페이지로
-            }}>
-              <option value="RECENT">최신순</option>
-              <option value="SALARY_HIGH">급여높은순</option>
-              <option value="MATCH_SCORE">매칭점수순</option>
-            </SortDropdown>
+            <SortArea>
+              {isLoggedIn && <MatchScoreTooltip />}
+              <SortDropdown value={sortBy} onChange={(e) => {
+                setSortBy(e.target.value);
+                setPage(0);
+              }}>
+                <option value="RECENT">최신순</option>
+                <option value="SALARY_HIGH">급여높은순</option>
+                <option value="MATCH_SCORE">매칭점수순</option>
+              </SortDropdown>
+            </SortArea>
           </CountHeader>
 
           {isLoading && (
