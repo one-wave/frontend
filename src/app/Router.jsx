@@ -14,6 +14,7 @@ import ResumeListPage from "../pages/user/resume/ResumeListPage";
 import ResumeCreatePage from "../pages/user/resume/ResumeCreatePage";
 import ResumeDetailPage from "../pages/user/resume/ResumeDetailPage";
 import ResumeEditorPage from "../pages/user/resume/ResumeEditorPage";
+import NotFoundPage from "../pages/NotFoundPage";
 
 function Router() {
   return (
@@ -42,7 +43,7 @@ function Router() {
         <Route path="/company/state" element={<CompanyStatePage />} />
 
         {/* 404 */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
   );
