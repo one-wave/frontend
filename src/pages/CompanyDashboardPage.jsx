@@ -159,6 +159,12 @@ const Badge = styled.span`
 function CompanyDashboardPage() {
   const navigate = useNavigate();
 
+  const handleLogout = () => {
+    localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('userType');
+    navigate('/login');
+  };
+
   const recentApplications = [
     { id: 1, name: '김민수', position: '웹 프론트엔드 개발자', date: '2024-02-05', status: 'new' },
     { id: 2, name: '이지은', position: '데이터 분석가', date: '2024-02-04', status: 'reviewing' },
@@ -180,7 +186,7 @@ function CompanyDashboardPage() {
           <Button onClick={() => navigate('/company/job-post')}>
             ✏️ 공고 등록
           </Button>
-          <Button primary onClick={() => navigate('/login')}>
+          <Button primary onClick={handleLogout}>
             로그아웃
           </Button>
         </HeaderButtons>

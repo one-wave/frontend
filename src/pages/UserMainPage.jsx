@@ -118,6 +118,37 @@ const Content = styled.main`
   padding: 0 40px 40px;
 `;
 
+const TabSection = styled.div`
+  display: flex;
+  gap: 16px;
+  margin-bottom: 32px;
+  border-bottom: 2px solid #e0e0e0;
+`;
+
+const Tab = styled.button`
+  padding: 16px 32px;
+  background: none;
+  border: none;
+  border-bottom: 3px solid ${props => props.active ? '#667eea' : 'transparent'};
+  color: ${props => props.active ? '#667eea' : '#666'};
+  font-size: 18px;
+  font-weight: ${props => props.active ? '700' : '600'};
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: -2px;
+
+  &:hover {
+    color: #667eea;
+  }
+`;
+
+const SectionTitle = styled.h2`
+  margin: 0 0 24px 0;
+  color: #333;
+  font-size: 24px;
+  font-weight: 700;
+`;
+
 const JobGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
@@ -174,6 +205,7 @@ const Tag = styled.span`
 
 function UserMainPage() {
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('jobs');
   const [searchKeyword, setSearchKeyword] = useState('');
   const [filters, setFilters] = useState({
     wheelchair: false,
@@ -182,7 +214,15 @@ function UserMainPage() {
     hearing: false,
   });
 
-  // 더미 데이터
+  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+
+  const handleLogout = () => {
+    localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('userType');
+    navigate('/login');
+  };
+
+  // 더미 데이터 - 구직정보
   const jobs = [
     {
       id: 1,
@@ -218,8 +258,149 @@ function UserMainPage() {
     },
   ];
 
+  // 더미 데이터 - 공모전
+  const contests = [
+    {
+      id: 1,
+      title: '배리어프리 앱 개발 공모전',
+      organizer: '한국장애인고용공단',
+      period: '~2024.03.31',
+      prize: '대상 500만원',
+      tags: ['앱 개발', '접근성', '장애인'],
+    },
+    {
+      id: 2,
+      title: '소셜 벤처 아이디어 경진대회',
+      organizer: '사회적기업진흥원',
+      period: '~2024.04.15',
+      prize: '최우수상 300만원',
+      tags: ['아이디어', '사회문제', '창업'],
+    },
+    {
+      id: 3,
+      title: '장애인 고용 우수사례 공모',
+      organizer: '고용노동부',
+      period: '~2024.05.20',
+      prize: '우수상 200만원',
+      tags: ['사례공모', '기업', '정책'],
+    },
+  ];
+
+  // 더미 데이터 - 교육프로그램
+  const educationPrograms = [
+    {
+      id: 1,
+      title: 'IT 실무 역량 강화 과정',
+      organizer: '한국장애인고용공단',
+      period: '2024.03.01 ~ 2024.05.31 (3개월)',
+      support: '무료 교육 + 훈련수당 지급',
+      tags: ['IT', '개발', '온라인'],
+    },
+    {
+      id: 2,
+      title: '디지털 마케팅 전문가 과정',
+      organizer: '한국산업인력공단',
+      period: '2024.04.01 ~ 2024.06.30 (3개월)',
+      support: '무료 교육 + 자격증 취득',
+      tags: ['마케팅', 'SNS', '오프라인'],
+    },
+    {
+      id: 3,
+      title: '직장 내 의사소통 스킬업',
+      organizer: '서울장애인종합복지관',
+      period: '2024.03.15 ~ 2024.04.30 (6주)',
+      support: '무료 교육',
+      tags: ['커뮤니케이션', '직무', '온라인'],
+    },
+    {
+      id: 4,
+      title: 'AI 활용 데이터 분석 입문',
+      organizer: '한국장애인고용공단',
+      period: '2024.05.01 ~ 2024.07.31 (3개월)',
+      support: '무료 교육 + 노트북 지원',
+      tags: ['AI', '데이터', '신입'],
+    },
+  ];
+
   const handleJobClick = (jobId) => {
     navigate(`/user/job/${jobId}`);
+  };
+
+  const renderContent = () => {
+    if (activeTab === 'jobs') {
+      return (
+        <>
+          <SectionTitle>💼 구직 정보</SectionTitle>
+          <JobGrid>
+            {jobs.map(job => (
+              <JobCard key={job.id} onClick={() => handleJobClick(job.id)}>
+                <JobTitle>{job.title}</JobTitle>
+                <CompanyName>{job.company}</CompanyName>
+                <JobInfo>
+                  📍 {job.location}<br />
+                  💰 {job.salary}
+                </JobInfo>
+                <JobTags>
+                  {job.tags.map((tag, index) => (
+                    <Tag key={index}>{tag}</Tag>
+                  ))}
+                </JobTags>
+              </JobCard>
+            ))}
+          </JobGrid>
+        </>
+      );
+    }
+
+    if (activeTab === 'contests') {
+      return (
+        <>
+          <SectionTitle>🏆 공모전</SectionTitle>
+          <JobGrid>
+            {contests.map(contest => (
+              <JobCard key={contest.id}>
+                <JobTitle>{contest.title}</JobTitle>
+                <CompanyName>{contest.organizer}</CompanyName>
+                <JobInfo>
+                  📅 접수기간: {contest.period}<br />
+                  🎁 상금: {contest.prize}
+                </JobInfo>
+                <JobTags>
+                  {contest.tags.map((tag, index) => (
+                    <Tag key={index}>{tag}</Tag>
+                  ))}
+                </JobTags>
+              </JobCard>
+            ))}
+          </JobGrid>
+        </>
+      );
+    }
+
+    if (activeTab === 'education') {
+      return (
+        <>
+          <SectionTitle>📚 교육 프로그램</SectionTitle>
+          <JobGrid>
+            {educationPrograms.map(program => (
+              <JobCard key={program.id}>
+                <JobTitle>{program.title}</JobTitle>
+                <CompanyName>{program.organizer}</CompanyName>
+                <JobInfo>
+                  📅 {program.period}<br />
+                  ✨ {program.support}
+                </JobInfo>
+                <JobTags>
+                  {program.tags.map((tag, index) => (
+                    <Tag key={index}>{tag}</Tag>
+                  ))}
+                </JobTags>
+              </JobCard>
+            ))}
+          </JobGrid>
+        </>
+      );
+    }
   };
 
   return (
@@ -227,9 +408,14 @@ function UserMainPage() {
       <Header>
         <Logo>잡케어</Logo>
         <HeaderButtons>
-          <Button onClick={() => navigate('/user/interview')}>🎤 면접 도우미</Button>
-          <Button onClick={() => navigate('/user/mypage')}>마이페이지</Button>
-          <Button primary onClick={() => navigate('/login')}>로그아웃</Button>
+          {isLoggedIn ? (
+            <>
+              <Button onClick={() => navigate('/user/mypage')}>마이페이지</Button>
+              <Button primary onClick={handleLogout}>로그아웃</Button>
+            </>
+          ) : (
+            <Button primary onClick={() => navigate('/login')}>로그인</Button>
+          )}
         </HeaderButtons>
       </Header>
 
@@ -280,23 +466,19 @@ function UserMainPage() {
       </SearchSection>
 
       <Content>
-        <JobGrid>
-          {jobs.map(job => (
-            <JobCard key={job.id} onClick={() => handleJobClick(job.id)}>
-              <JobTitle>{job.title}</JobTitle>
-              <CompanyName>{job.company}</CompanyName>
-              <JobInfo>
-                📍 {job.location}<br />
-                💰 {job.salary}
-              </JobInfo>
-              <JobTags>
-                {job.tags.map((tag, index) => (
-                  <Tag key={index}>{tag}</Tag>
-                ))}
-              </JobTags>
-            </JobCard>
-          ))}
-        </JobGrid>
+        <TabSection>
+          <Tab active={activeTab === 'jobs'} onClick={() => setActiveTab('jobs')}>
+            💼 구직정보
+          </Tab>
+          <Tab active={activeTab === 'contests'} onClick={() => setActiveTab('contests')}>
+            🏆 공모전
+          </Tab>
+          <Tab active={activeTab === 'education'} onClick={() => setActiveTab('education')}>
+            📚 교육프로그램
+          </Tab>
+        </TabSection>
+
+        {renderContent()}
       </Content>
     </Container>
   );

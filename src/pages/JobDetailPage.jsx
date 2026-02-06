@@ -174,7 +174,7 @@ function JobDetailPage() {
   return (
     <Container>
       <Header>
-        <Logo onClick={() => navigate('/user/main')}>잡케어</Logo>
+        <Logo onClick={() => navigate('/')}>잡케어</Logo>
         <BackButton onClick={() => navigate(-1)}>← 목록으로</BackButton>
       </Header>
 
