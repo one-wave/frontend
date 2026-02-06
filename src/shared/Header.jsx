@@ -1,6 +1,6 @@
 import styled from "@emotion/styled";
 import { useNavigate } from "react-router-dom";
-import { Accessibility, UserRound, LogOut } from "lucide-react";
+import { Accessibility, UserRound, LogOut, LogIn } from "lucide-react";
 import { logout } from "../api/Auth";
 import { clearAuthStorage } from "../api/Http";
 
@@ -57,6 +57,7 @@ const HeaderBtn = styled.button`
 
 function Header() {
   const navigate = useNavigate();
+  const isLoggedIn = !!localStorage.getItem("accessToken");
 
   const handleLogout = async () => {
     try {
@@ -77,12 +78,20 @@ function Header() {
           배리어 프리
         </Logo>
         <HeaderButtonGroup>
-          <HeaderBtn onClick={() => navigate("/user/mypage")}>
-            <UserRound size={16} /> 마이페이지
-          </HeaderBtn>
-          <HeaderBtn onClick={handleLogout}>
-            <LogOut size={16} /> 로그아웃
-          </HeaderBtn>
+          {isLoggedIn ? (
+            <>
+              <HeaderBtn onClick={() => navigate("/user/mypage")}>
+                <UserRound size={16} /> 마이페이지
+              </HeaderBtn>
+              <HeaderBtn onClick={handleLogout}>
+                <LogOut size={16} /> 로그아웃
+              </HeaderBtn>
+            </>
+          ) : (
+            <HeaderBtn onClick={() => navigate("/login")}>
+              <LogIn size={16} /> 로그인
+            </HeaderBtn>
+          )}
         </HeaderButtonGroup>
       </HeaderContent>
     </HeaderWrapper>

@@ -8,6 +8,13 @@ export function clearAuthStorage() {
   localStorage.removeItem("userId");
 }
 
+/** 기업 로그아웃 시 기업 토큰만 삭제 */
+export function clearCompanyAuthStorage() {
+  localStorage.removeItem("companyToken");
+  localStorage.removeItem("companyAuthCode");
+  localStorage.removeItem("companyTokenExpiresAt");
+}
+
 /** JWT accessToken payload에서 sub(userId) 추출 */
 export function getUserIdFromToken(accessToken) {
   if (!accessToken || typeof accessToken !== "string") return null;

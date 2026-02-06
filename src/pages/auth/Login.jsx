@@ -2,6 +2,7 @@ import styled from '@emotion/styled';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User } from 'lucide-react';
+import { api, getUserIdFromToken } from '../../api/Http';
 
 const Container = styled.div`
   display: flex;
@@ -295,6 +296,8 @@ function Login() {
   const [activeTab, setActiveTab] = useState('individual'); // 'individual' or 'company'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loginError, setLoginError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [companies, setCompanies] = useState([]);
   const [companySearch, setCompanySearch] = useState('');
@@ -368,8 +371,52 @@ function Login() {
     const userType = activeTab === 'individual' ? 'jobseeker' : 'company';
 
     if (userType === 'jobseeker') {
-      // TODO: 실제 로그인 API 연동
-      navigate('/');
+      setLoginError('');
+      if (!email.trim()) {
+        setLoginError('이메일을 입력해주세요.');
+        return;
+      }
+      if (!password) {
+        setLoginError('비밀번호를 입력해주세요.');
+        return;
+      }
+      setIsSubmitting(true);
+      try {
+        const { data } = await api.post('/auth/login', {
+          email: email.trim(),
+          password: password ?? '',
+        });
+        const accessToken = data?.accessToken ?? data?.access_token;
+        const refreshToken = data?.refreshToken ?? data?.refresh_token;
+        if (accessToken) {
+          localStorage.setItem('accessToken', accessToken);
+          const userId = getUserIdFromToken(accessToken);
+          if (userId) localStorage.setItem('userId', userId);
+        }
+        if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
+        navigate('/');
+      } catch (error) {
+        const status = error.response?.status;
+        const serverMessage = error.response?.data?.message ?? error.response?.data?.error;
+        const msgStr = typeof serverMessage === 'string' ? serverMessage : '';
+        let message;
+        if (status === 400) {
+          message = '이메일 또는 비밀번호가 일치하지 않습니다.';
+        } else if (status === 500) {
+          message = '이메일 또는 비밀번호가 일치하지 않습니다.';
+        } else if (status >= 502) {
+          message = '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+        } else if (msgStr) {
+          message = msgStr;
+        } else if (error.code === 'ERR_NETWORK' || !error.response) {
+          message = '네트워크 연결을 확인해주세요.';
+        } else {
+          message = '로그인에 실패했습니다.';
+        }
+        setLoginError(message);
+      } finally {
+        setIsSubmitting(false);
+      }
       return;
     }
 
@@ -407,6 +454,7 @@ function Login() {
       if (result?.success && result?.token) {
         try {
           localStorage.setItem('companyToken', result.token);
+          localStorage.setItem('companyAuthCode', authCode.trim());
           if (result.expiresAt) {
             localStorage.setItem('companyTokenExpiresAt', result.expiresAt);
           }
@@ -484,6 +532,9 @@ function Login() {
                   onChange={(e) => setPassword(e.target.value)}
                 />
               </InputGroup>
+              {loginError && (
+                <HelperText style={{ color: '#c53030' }}>{loginError}</HelperText>
+              )}
             </>
           )}
 
@@ -671,7 +722,9 @@ function Login() {
             </>
           )}
 
-          <LoginButton type="submit">로그인</LoginButton>
+          <LoginButton type="submit" disabled={activeTab === 'individual' && isSubmitting}>
+            {activeTab === 'individual' && isSubmitting ? '로그인 중...' : '로그인'}
+          </LoginButton>
         </LoginForm>
 
         <SignUpLink>
