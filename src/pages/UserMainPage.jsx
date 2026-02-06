@@ -1,212 +1,385 @@
-import styled from '@emotion/styled';
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import styled from "@emotion/styled";
+import { css, Global } from "@emotion/react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  Search,
+  Bookmark,
+  Building2,
+  Accessibility,
+  Clock,
+  UserRound,
+  LogOut,
+  MapPin,
+  Briefcase,
+} from "lucide-react";
 
-const Container = styled.div`
-  min-height: 100vh;
-  background-color: #f8f9fa;
+// --- Global Reset & Font ---
+const GlobalStyle = css`
+  @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css");
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: "Pretendard", sans-serif;
+  }
+  body {
+    background-color: #f8f9fa;
+    color: #333;
+  }
+  button {
+    cursor: pointer;
+    border: none;
+    outline: none;
+    font-family: inherit;
+  }
 `;
 
-const Header = styled.header`
-  background-color: white;
-  padding: 20px 40px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+// --- Styled Components ---
+
+const Container = styled.div`
+  width: 100%;
+  min-height: 100vh;
+`;
+
+// 1. Header
+const HeaderWrapper = styled.header`
+  background: white;
+  border-bottom: 1px solid #eee;
+  padding: 12px 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+`;
+
+const HeaderContent = styled.div`
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
 `;
 
-const Logo = styled.h1`
-  margin: 0;
-  color: #667eea;
-  font-size: 24px;
-`;
-
-const HeaderButtons = styled.div`
+const Logo = styled.div`
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #0b4da2; /* Deep Blue */
   display: flex;
-  gap: 12px;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
 `;
 
-const Button = styled.button`
-  padding: 10px 20px;
-  background-color: ${props => props.primary ? '#667eea' : 'transparent'};
-  color: ${props => props.primary ? 'white' : '#667eea'};
-  border: ${props => props.primary ? 'none' : '2px solid #667eea'};
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
-  transition: all 0.2s;
+const HeaderButtonGroup = styled.div`
+  display: flex;
+  gap: 8px;
+`;
 
+const HeaderBtn = styled.button`
+  background: white;
+  border: 1px solid #ddd;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  color: #555;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
   &:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    background: #f1f1f1;
+    border-color: #ccc;
   }
 `;
 
-const SearchSection = styled.div`
-  background-color: white;
-  padding: 40px;
-  margin: 30px auto;
-  max-width: 1200px;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+// 2. Hero Section (Search)
+const HeroSection = styled.div`
+  background-color: #0b4da2;
+  padding: 60px 0;
+  text-align: center;
+  color: white;
 `;
 
-const SearchBar = styled.div`
+const HeroTitle = styled.h1`
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+`;
+
+const HeroSubtitle = styled.p`
+  font-size: 1rem;
+  opacity: 0.9;
+  margin-bottom: 30px;
+`;
+
+const SearchBarWrapper = styled.div`
+  background: white;
+  width: 600px;
+  max-width: 90%;
+  margin: 0 auto;
+  border-radius: 4px;
+  padding: 6px;
   display: flex;
-  gap: 12px;
-  margin-bottom: 20px;
+  align-items: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 `;
 
 const SearchInput = styled.input`
   flex: 1;
-  padding: 14px 20px;
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
-  font-size: 15px;
-
-  &:focus {
-    outline: none;
-    border-color: #667eea;
-  }
-`;
-
-const SearchButton = styled.button`
-  padding: 14px 32px;
-  background-color: #667eea;
-  color: white;
   border: none;
-  border-radius: 8px;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s;
-
-  &:hover {
-    background-color: #5568d3;
+  padding: 12px;
+  font-size: 1rem;
+  outline: none;
+  &::placeholder {
+    color: #999;
   }
 `;
 
-const FilterSection = styled.div`
+const SearchSubmitBtn = styled.button`
+  background-color: #0b4da2;
+  color: white;
+  padding: 10px 24px;
+  border-radius: 4px;
+  font-weight: 600;
   display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  &:hover {
+    background-color: #093c80;
+  }
+`;
+
+// 3. Main Layout (Sidebar + Grid)
+const MainLayout = styled.div`
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  display: flex;
+  gap: 30px;
+
+  @media (max-width: 850px) {
+    flex-direction: column;
+  }
+`;
+
+// Sidebar
+const Sidebar = styled.aside`
+  width: 250px;
+  flex-shrink: 0;
+  background: white;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 24px;
+  height: fit-content;
+`;
+
+const FilterGroup = styled.div`
+  margin-bottom: 30px;
+  &:last-child {
+    margin-bottom: 0;
+  }
+`;
+
+const FilterTitle = styled.h3`
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #333;
 `;
 
 const CheckboxLabel = styled.label`
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  margin-bottom: 12px;
+  font-size: 0.95rem;
+  color: #555;
   cursor: pointer;
-  
+
   input {
-    width: 18px;
-    height: 18px;
-    cursor: pointer;
-  }
-  
-  span {
-    color: #333;
-    font-size: 14px;
+    accent-color: #0b4da2;
+    transform: scale(1.1);
   }
 `;
 
-const Content = styled.main`
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 40px 40px;
+// Content Area
+const ContentArea = styled.main`
+  flex: 1;
 `;
 
+// Tabs (Existing Logic kept, styled minimally to fit)
 const TabSection = styled.div`
   display: flex;
-  gap: 16px;
-  margin-bottom: 32px;
-  border-bottom: 2px solid #e0e0e0;
+  gap: 20px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
 `;
 
 const Tab = styled.button`
-  padding: 16px 32px;
   background: none;
   border: none;
-  border-bottom: 3px solid ${props => props.active ? '#667eea' : 'transparent'};
-  color: ${props => props.active ? '#667eea' : '#666'};
-  font-size: 18px;
-  font-weight: ${props => props.active ? '700' : '600'};
-  cursor: pointer;
+  font-size: 1.1rem;
+  font-weight: ${(props) => (props.active ? "700" : "500")};
+  color: ${(props) => (props.active ? "#0b4da2" : "#888")};
+  padding-bottom: 8px;
+  border-bottom: 3px solid
+    ${(props) => (props.active ? "#0b4da2" : "transparent")};
   transition: all 0.2s;
-  margin-bottom: -2px;
-
   &:hover {
-    color: #667eea;
+    color: #0b4da2;
   }
 `;
 
-const SectionTitle = styled.h2`
-  margin: 0 0 24px 0;
-  color: #333;
-  font-size: 24px;
-  font-weight: 700;
+const CountHeader = styled.div`
+  margin-bottom: 16px;
+  font-size: 1rem;
+  color: #555;
+  strong {
+    color: #0b4da2;
+  }
 `;
 
-const JobGrid = styled.div`
+// Grid & Card
+const Grid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  grid-template-columns: repeat(2, 1fr); // 2 columns like the image
   gap: 24px;
+
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
-const JobCard = styled.div`
-  background-color: white;
-  padding: 24px;
+const Card = styled.div`
+  background: white;
+  border: 1px solid #e1e1e1;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.2s;
   cursor: pointer;
-  transition: all 0.3s;
 
   &:hover {
     transform: translateY(-4px);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   }
 `;
 
-const JobTitle = styled.h3`
-  margin: 0 0 12px 0;
-  color: #333;
-  font-size: 18px;
+const CardHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
 `;
 
-const CompanyName = styled.p`
-  margin: 0 0 8px 0;
-  color: #667eea;
-  font-size: 15px;
+const CompanyInfo = styled.div`
+  display: flex;
+  gap: 12px;
+`;
+
+const CompanyIcon = styled.div`
+  width: 44px;
+  height: 44px;
+  background: #f0f7ff;
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #0b4da2;
+`;
+
+const CompanyNameText = styled.div`
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 4px;
+`;
+
+const CardTitle = styled.h2`
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #222;
+  line-height: 1.4;
+`;
+
+const TagsWrapper = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+  margin-bottom: 20px;
+`;
+
+const TagSpan = styled.span`
+  background-color: ${(props) => props.bg || "#f1f8ff"};
+  color: ${(props) => props.color || "#0b4da2"};
+  font-size: 0.8rem;
+  padding: 4px 8px;
+  border-radius: 4px;
   font-weight: 600;
 `;
 
-const JobInfo = styled.p`
-  margin: 0 0 16px 0;
-  color: #666;
-  font-size: 14px;
-  line-height: 1.6;
-`;
-
-const JobTags = styled.div`
+const CardFooter = styled.div`
   display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+  padding-top: 16px;
 `;
 
-const Tag = styled.span`
-  padding: 4px 12px;
-  background-color: #f0f0f0;
-  color: #666;
-  border-radius: 12px;
-  font-size: 12px;
+const Deadline = styled.span`
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: ${(props) => (props.urgent ? "#e03e3e" : "#666")};
+  background: ${(props) => (props.urgent ? "#fff0f0" : "transparent")};
+  padding: ${(props) => (props.urgent ? "4px 8px" : "0")};
+  border-radius: 4px;
 `;
+
+const ApplyButton = styled.button`
+  background-color: #00796b; /* Green from image */
+  color: white;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  &:hover {
+    background-color: #006054;
+  }
+  &::after {
+    content: "›";
+    font-size: 1.2rem;
+    line-height: 0.8;
+  }
+`;
+
+// Helper for random tag colors to match image
+const getTagStyle = (tag) => {
+  if (tag.includes("재택") || tag.includes("신입"))
+    return { bg: "#e6f9ed", color: "#00a84e" };
+  if (tag.includes("탄력") || tag.includes("경력"))
+    return { bg: "#f3eafa", color: "#7a3db8" };
+  return { bg: "#eef6ff", color: "#0b4da2" };
+};
+
+// --- Main Component ---
 
 function UserMainPage() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('jobs');
-  const [searchKeyword, setSearchKeyword] = useState('');
+  const [activeTab, setActiveTab] = useState("jobs");
+  const [searchKeyword, setSearchKeyword] = useState("");
   const [filters, setFilters] = useState({
     wheelchair: false,
     remote: false,
@@ -214,111 +387,93 @@ function UserMainPage() {
     hearing: false,
   });
 
-  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+  const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
 
   const handleLogout = () => {
-    localStorage.removeItem('isLoggedIn');
-    localStorage.removeItem('userType');
-    navigate('/login');
+    localStorage.removeItem("isLoggedIn");
+    localStorage.removeItem("userType");
+    navigate("/login");
   };
 
-  // 더미 데이터 - 구직정보
+  // 기존 데이터 유지
   const jobs = [
     {
       id: 1,
-      title: '웹 프론트엔드 개발자',
-      company: '테크케어',
-      location: '서울 강남구',
-      salary: '연봉 3,500~4,500만원',
-      tags: ['휠체어 가능', '재택 근무', '신입 가능'],
+      title: "웹 프론트엔드 개발자 (웹 접근성 전문)",
+      company: "주식회사 배리어프리",
+      location: "서울 강남구",
+      salary: "연봉 3,500~",
+      tags: ["재택근무", "경사로있음", "탄력근무제"],
+      deadline: "D-7",
+      urgent: false,
     },
     {
       id: 2,
-      title: '데이터 분석가',
-      company: '데이터헬스',
-      location: '서울 판교',
-      salary: '연봉 4,000~5,000만원',
-      tags: ['재택 근무', '경력 2년↑'],
+      title: "행정 사무 보조원",
+      company: "한국장애인고용공단",
+      location: "서울 판교",
+      salary: "회사내규",
+      tags: ["휠체어접근가능", "근로지원인지원"],
+      deadline: "마감 D-3",
+      urgent: true,
     },
     {
       id: 3,
-      title: '고객 상담원',
-      company: '케어콜센터',
-      location: '서울 마포구',
-      salary: '연봉 2,800~3,200만원',
-      tags: ['휠체어 가능', '청각보조기기 지원'],
+      title: "UX 리서처 (접근성 테스트)",
+      company: "(주) 디지털인클루전",
+      location: "서울 마포구",
+      salary: "연봉 3,200~",
+      tags: ["재택근무", "탄력근무제"],
+      deadline: "D-14",
+      urgent: false,
     },
     {
       id: 4,
-      title: '콘텐츠 기획자',
-      company: '소셜임팩트',
-      location: '서울 성수동',
-      salary: '연봉 3,000~4,000만원',
-      tags: ['재택 근무', '유연근무', '신입 가능'],
+      title: "데이터 분석가 (주니어)",
+      company: "열린기술 주식회사",
+      location: "서울 성수동",
+      salary: "연봉 4,000~",
+      tags: ["재택근무", "경사로있음"],
+      deadline: "마감 D-5",
+      urgent: true,
     },
   ];
 
-  // 더미 데이터 - 공모전
   const contests = [
     {
       id: 1,
-      title: '배리어프리 앱 개발 공모전',
-      organizer: '한국장애인고용공단',
-      period: '~2024.03.31',
-      prize: '대상 500만원',
-      tags: ['앱 개발', '접근성', '장애인'],
+      title: "배리어프리 앱 개발 공모전",
+      company: "한국장애인고용공단",
+      tags: ["앱 개발", "접근성", "장애인"],
+      deadline: "~03.31",
+      urgent: false,
     },
     {
       id: 2,
-      title: '소셜 벤처 아이디어 경진대회',
-      organizer: '사회적기업진흥원',
-      period: '~2024.04.15',
-      prize: '최우수상 300만원',
-      tags: ['아이디어', '사회문제', '창업'],
-    },
-    {
-      id: 3,
-      title: '장애인 고용 우수사례 공모',
-      organizer: '고용노동부',
-      period: '~2024.05.20',
-      prize: '우수상 200만원',
-      tags: ['사례공모', '기업', '정책'],
+      title: "소셜 벤처 아이디어 경진대회",
+      company: "사회적기업진흥원",
+      tags: ["아이디어", "사회문제", "창업"],
+      deadline: "~04.15",
+      urgent: false,
     },
   ];
 
-  // 더미 데이터 - 교육프로그램
   const educationPrograms = [
     {
       id: 1,
-      title: 'IT 실무 역량 강화 과정',
-      organizer: '한국장애인고용공단',
-      period: '2024.03.01 ~ 2024.05.31 (3개월)',
-      support: '무료 교육 + 훈련수당 지급',
-      tags: ['IT', '개발', '온라인'],
+      title: "IT 실무 역량 강화 과정",
+      company: "한국장애인고용공단",
+      tags: ["IT", "개발", "온라인"],
+      deadline: "상시모집",
+      urgent: false,
     },
     {
       id: 2,
-      title: '디지털 마케팅 전문가 과정',
-      organizer: '한국산업인력공단',
-      period: '2024.04.01 ~ 2024.06.30 (3개월)',
-      support: '무료 교육 + 자격증 취득',
-      tags: ['마케팅', 'SNS', '오프라인'],
-    },
-    {
-      id: 3,
-      title: '직장 내 의사소통 스킬업',
-      organizer: '서울장애인종합복지관',
-      period: '2024.03.15 ~ 2024.04.30 (6주)',
-      support: '무료 교육',
-      tags: ['커뮤니케이션', '직무', '온라인'],
-    },
-    {
-      id: 4,
-      title: 'AI 활용 데이터 분석 입문',
-      organizer: '한국장애인고용공단',
-      period: '2024.05.01 ~ 2024.07.31 (3개월)',
-      support: '무료 교육 + 노트북 지원',
-      tags: ['AI', '데이터', '신입'],
+      title: "디지털 마케팅 전문가 과정",
+      company: "한국산업인력공단",
+      tags: ["마케팅", "SNS", "오프라인"],
+      deadline: "마감임박",
+      urgent: true,
     },
   ];
 
@@ -326,160 +481,206 @@ function UserMainPage() {
     navigate(`/user/job/${jobId}`);
   };
 
-  const renderContent = () => {
-    if (activeTab === 'jobs') {
-      return (
-        <>
-          <SectionTitle>💼 구직 정보</SectionTitle>
-          <JobGrid>
-            {jobs.map(job => (
-              <JobCard key={job.id} onClick={() => handleJobClick(job.id)}>
-                <JobTitle>{job.title}</JobTitle>
-                <CompanyName>{job.company}</CompanyName>
-                <JobInfo>
-                  📍 {job.location}<br />
-                  💰 {job.salary}
-                </JobInfo>
-                <JobTags>
-                  {job.tags.map((tag, index) => (
-                    <Tag key={index}>{tag}</Tag>
-                  ))}
-                </JobTags>
-              </JobCard>
-            ))}
-          </JobGrid>
-        </>
-      );
-    }
-
-    if (activeTab === 'contests') {
-      return (
-        <>
-          <SectionTitle>🏆 공모전</SectionTitle>
-          <JobGrid>
-            {contests.map(contest => (
-              <JobCard key={contest.id}>
-                <JobTitle>{contest.title}</JobTitle>
-                <CompanyName>{contest.organizer}</CompanyName>
-                <JobInfo>
-                  📅 접수기간: {contest.period}<br />
-                  🎁 상금: {contest.prize}
-                </JobInfo>
-                <JobTags>
-                  {contest.tags.map((tag, index) => (
-                    <Tag key={index}>{tag}</Tag>
-                  ))}
-                </JobTags>
-              </JobCard>
-            ))}
-          </JobGrid>
-        </>
-      );
-    }
-
-    if (activeTab === 'education') {
-      return (
-        <>
-          <SectionTitle>📚 교육 프로그램</SectionTitle>
-          <JobGrid>
-            {educationPrograms.map(program => (
-              <JobCard key={program.id}>
-                <JobTitle>{program.title}</JobTitle>
-                <CompanyName>{program.organizer}</CompanyName>
-                <JobInfo>
-                  📅 {program.period}<br />
-                  ✨ {program.support}
-                </JobInfo>
-                <JobTags>
-                  {program.tags.map((tag, index) => (
-                    <Tag key={index}>{tag}</Tag>
-                  ))}
-                </JobTags>
-              </JobCard>
-            ))}
-          </JobGrid>
-        </>
-      );
-    }
+  const getData = () => {
+    if (activeTab === "jobs") return jobs;
+    if (activeTab === "contests") return contests;
+    return educationPrograms;
   };
+
+  const currentData = getData();
 
   return (
     <Container>
-      <Header>
-        <Logo>잡케어</Logo>
-        <HeaderButtons>
-          {isLoggedIn ? (
-            <>
-              <Button onClick={() => navigate('/user/mypage')}>마이페이지</Button>
-              <Button primary onClick={handleLogout}>로그아웃</Button>
-            </>
-          ) : (
-            <Button primary onClick={() => navigate('/login')}>로그인</Button>
-          )}
-        </HeaderButtons>
-      </Header>
+      <Global styles={GlobalStyle} />
 
-      <SearchSection>
-        <SearchBar>
-          <SearchInput 
-            placeholder="직무, 회사명, 지역으로 검색하세요"
+      {/* 1. Header */}
+      <HeaderWrapper>
+        <HeaderContent>
+          <Logo onClick={() => navigate("/")}>
+            <Accessibility size={28} />
+            배리어 프리
+          </Logo>
+          <HeaderButtonGroup>
+            {isLoggedIn ? (
+              <>
+                <HeaderBtn onClick={() => navigate("/user/mypage")}>
+                  <UserRound size={16} /> 마이페이지
+                </HeaderBtn>
+                <HeaderBtn onClick={handleLogout}>
+                  <LogOut size={16} /> 로그아웃
+                </HeaderBtn>
+              </>
+            ) : (
+              <HeaderBtn onClick={() => navigate("/login")}>로그인</HeaderBtn>
+            )}
+          </HeaderButtonGroup>
+        </HeaderContent>
+      </HeaderWrapper>
+
+      {/* 2. Hero Section */}
+      <HeroSection>
+        <HeroTitle>나에게 맞는 일자리를 찾아보세요</HeroTitle>
+        <HeroSubtitle>접근성을 고려한 채용 공고만 모았습니다</HeroSubtitle>
+        <SearchBarWrapper>
+          <SearchInput
+            placeholder="직무, 회사명, 또는 키워드를 검색해보세요"
             value={searchKeyword}
             onChange={(e) => setSearchKeyword(e.target.value)}
           />
-          <SearchButton>검색</SearchButton>
-        </SearchBar>
+          <SearchSubmitBtn>
+            <Search size={18} /> 검색
+          </SearchSubmitBtn>
+        </SearchBarWrapper>
+      </HeroSection>
 
-        <FilterSection>
-          <CheckboxLabel>
-            <input 
-              type="checkbox" 
-              checked={filters.wheelchair}
-              onChange={(e) => setFilters({...filters, wheelchair: e.target.checked})}
-            />
-            <span>♿️ 휠체어 가능</span>
-          </CheckboxLabel>
-          <CheckboxLabel>
-            <input 
-              type="checkbox" 
-              checked={filters.remote}
-              onChange={(e) => setFilters({...filters, remote: e.target.checked})}
-            />
-            <span>🏠 재택 근무</span>
-          </CheckboxLabel>
-          <CheckboxLabel>
-            <input 
-              type="checkbox" 
-              checked={filters.visual}
-              onChange={(e) => setFilters({...filters, visual: e.target.checked})}
-            />
-            <span>👁️ 시각장애 지원</span>
-          </CheckboxLabel>
-          <CheckboxLabel>
-            <input 
-              type="checkbox" 
-              checked={filters.hearing}
-              onChange={(e) => setFilters({...filters, hearing: e.target.checked})}
-            />
-            <span>👂 청각장애 지원</span>
-          </CheckboxLabel>
-        </FilterSection>
-      </SearchSection>
+      {/* 3. Main Layout */}
+      <MainLayout>
+        {/* Sidebar */}
+        <Sidebar>
+          <FilterGroup>
+            <FilterTitle>
+              <Accessibility size={18} /> 장애 유형
+            </FilterTitle>
+            <CheckboxLabel>
+              <input
+                type="checkbox"
+                checked={filters.wheelchair}
+                onChange={(e) =>
+                  setFilters({ ...filters, wheelchair: e.target.checked })
+                }
+              />{" "}
+              지체장애
+            </CheckboxLabel>
+            <CheckboxLabel>
+              <input
+                type="checkbox"
+                checked={filters.visual}
+                onChange={(e) =>
+                  setFilters({ ...filters, visual: e.target.checked })
+                }
+              />{" "}
+              시각장애
+            </CheckboxLabel>
+            <CheckboxLabel>
+              <input
+                type="checkbox"
+                checked={filters.hearing}
+                onChange={(e) =>
+                  setFilters({ ...filters, hearing: e.target.checked })
+                }
+              />{" "}
+              청각장애
+            </CheckboxLabel>
+          </FilterGroup>
 
-      <Content>
-        <TabSection>
-          <Tab active={activeTab === 'jobs'} onClick={() => setActiveTab('jobs')}>
-            💼 구직정보
-          </Tab>
-          <Tab active={activeTab === 'contests'} onClick={() => setActiveTab('contests')}>
-            🏆 공모전
-          </Tab>
-          <Tab active={activeTab === 'education'} onClick={() => setActiveTab('education')}>
-            📚 교육프로그램
-          </Tab>
-        </TabSection>
+          <hr
+            style={{
+              margin: "20px 0",
+              border: "0",
+              borderTop: "1px solid #eee",
+            }}
+          />
 
-        {renderContent()}
-      </Content>
+          <FilterGroup>
+            <FilterTitle>
+              <Building2 size={18} /> 근무 조건
+            </FilterTitle>
+            <CheckboxLabel>
+              <input type="checkbox" /> 휠체어 가능
+            </CheckboxLabel>
+            <CheckboxLabel>
+              <input
+                type="checkbox"
+                checked={filters.remote}
+                onChange={(e) =>
+                  setFilters({ ...filters, remote: e.target.checked })
+                }
+              />{" "}
+              재택 근무 가능
+            </CheckboxLabel>
+            <CheckboxLabel>
+              <input type="checkbox" /> 탄력 근무제
+            </CheckboxLabel>
+            <CheckboxLabel>
+              <input type="checkbox" /> 근로지원인 지원
+            </CheckboxLabel>
+          </FilterGroup>
+        </Sidebar>
+
+        {/* Content Area */}
+        <ContentArea>
+          <TabSection>
+            <Tab
+              active={activeTab === "jobs"}
+              onClick={() => setActiveTab("jobs")}
+            >
+              구직 정보
+            </Tab>
+            <Tab
+              active={activeTab === "contests"}
+              onClick={() => setActiveTab("contests")}
+            >
+              공모전
+            </Tab>
+            <Tab
+              active={activeTab === "education"}
+              onClick={() => setActiveTab("education")}
+            >
+              교육 프로그램
+            </Tab>
+          </TabSection>
+
+          <CountHeader>
+            총 <strong>{currentData.length}</strong>건의 공고
+          </CountHeader>
+
+          <Grid>
+            {currentData.map((item) => (
+              <Card
+                key={item.id}
+                onClick={() => activeTab === "jobs" && handleJobClick(item.id)}
+              >
+                <div>
+                  <CardHeader>
+                    <CompanyInfo>
+                      <CompanyIcon>
+                        {activeTab === "jobs" ? (
+                          <Building2 size={24} />
+                        ) : (
+                          <Briefcase size={24} />
+                        )}
+                      </CompanyIcon>
+                      <div>
+                        <CompanyNameText>{item.company}</CompanyNameText>
+                        <CardTitle>{item.title}</CardTitle>
+                      </div>
+                    </CompanyInfo>
+                    <Bookmark size={20} color="#ccc" />
+                  </CardHeader>
+
+                  <TagsWrapper>
+                    {item.tags.map((tag, idx) => {
+                      const style = getTagStyle(tag);
+                      return (
+                        <TagSpan key={idx} bg={style.bg} color={style.color}>
+                          #{tag}
+                        </TagSpan>
+                      );
+                    })}
+                  </TagsWrapper>
+                </div>
+
+                <CardFooter>
+                  <Deadline urgent={item.urgent}>
+                    <Clock size={16} /> {item.deadline}
+                  </Deadline>
+                  <ApplyButton>지원하기</ApplyButton>
+                </CardFooter>
+              </Card>
+            ))}
+          </Grid>
+        </ContentArea>
+      </MainLayout>
     </Container>
   );
 }
