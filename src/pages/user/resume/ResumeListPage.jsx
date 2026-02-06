@@ -2,9 +2,13 @@ import styled from "@emotion/styled";
 import { keyframes } from "@emotion/react";
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, FileText, ChevronRight, Crown, Plus, FileAudio, Mic, Loader2, CheckCircle, AlertCircle } from "lucide-react";
+import { ArrowLeft, FileText, ChevronRight, Crown, Plus, FileAudio, Mic, Loader2, CheckCircle, AlertCircle, Volume2, VolumeX } from "lucide-react";
 import Header from "../../../shared/Header";
 import { getResumes, uploadVoiceResume } from "../../../api/Auth";
+import useTTS from "../../../hooks/useTTS";
+
+const GUIDE_AUDIO_URL =
+  (import.meta.env.VITE_API_BASE_URL) + "/tts/guides/voice-resume-guide";
 
 const Container = styled.div`
   width: 100%;
@@ -203,6 +207,26 @@ const VoiceResumeHint = styled.p`
   margin: 0 0 16px 0;
 `;
 
+const GuideBtn = styled.button`
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: 1px solid #1b3a6b;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: ${(p) => (p.active ? "#1b3a6b" : "white")};
+  color: ${(p) => (p.active ? "white" : "#1b3a6b")};
+  margin-bottom: 12px;
+
+  &:hover {
+    background: ${(p) => (p.active ? "#162f56" : "#e8eef5")};
+  }
+`;
+
 const RecordBtn = styled.button`
   display: inline-flex;
   align-items: center;
@@ -289,6 +313,7 @@ function formatDate(iso) {
 
 function ResumeListPage() {
   const navigate = useNavigate();
+  const { toggle: toggleGuide, isSpeaking: isGuidePlaying } = useTTS();
   const [resumes, setResumes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -395,6 +420,14 @@ function ResumeListPage() {
           <VoiceResumeHint>
             녹음한 음성을 텍스트로 변환한 뒤 이력서로 저장합니다. (최대 {MAX_AUDIO_MB}MB, 약 10~60초 소요)
           </VoiceResumeHint>
+          <GuideBtn
+            type="button"
+            active={isGuidePlaying}
+            onClick={() => toggleGuide(GUIDE_AUDIO_URL)}
+          >
+            {isGuidePlaying ? <VolumeX size={18} /> : <Volume2 size={18} />}
+            {isGuidePlaying ? "안내 정지" : "녹음 전 안내 듣기"}
+          </GuideBtn>
           {voiceStatus === "idle" && (
             <RecordBtn type="button" onClick={startVoiceRecording}>
               <Mic size={18} /> 녹음하기
