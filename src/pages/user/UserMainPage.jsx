@@ -66,6 +66,43 @@ const Grid = styled.div`
   }
 `;
 
+// Pagination
+const PaginationWrapper = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-top: 40px;
+  padding: 20px 0;
+`;
+
+const PageButton = styled.button`
+  padding: 8px 12px;
+  border: 1px solid ${props => props.active ? '#0b4da2' : '#ddd'};
+  background: ${props => props.active ? '#0b4da2' : 'white'};
+  color: ${props => props.active ? 'white' : '#555'};
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: ${props => props.active ? '600' : '400'};
+  cursor: ${props => props.disabled ? 'not-allowed' : 'pointer'};
+  opacity: ${props => props.disabled ? '0.5' : '1'};
+  transition: all 0.2s;
+
+  &:hover:not(:disabled) {
+    background: ${props => props.active ? '#0b4da2' : '#f5f5f5'};
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+  }
+`;
+
+const PageInfo = styled.span`
+  font-size: 0.9rem;
+  color: #666;
+  margin: 0 12px;
+`;
+
 // --- Main Component ---
 
 function UserMainPage() {
@@ -73,9 +110,11 @@ function UserMainPage() {
   const [searchInput, setSearchInput] = useState(""); // 입력 중인 검색어
   const [searchKeyword, setSearchKeyword] = useState(""); // 실제 검색에 사용할 키워드
   const [sortBy, setSortBy] = useState("RECENT");
+  const [page, setPage] = useState(0); // 페이지 번호 (0부터 시작)
   
   const handleSearch = () => {
     setSearchKeyword(searchInput);
+    setPage(0); // 검색 시 첫 페이지로
   };
   
   // 로그인 여부 확인 (최상단으로 이동)
@@ -84,7 +123,7 @@ function UserMainPage() {
 
   // 백엔드 GET /api/job-posts — userId는 UUID일 때만 전달 (아니면 400), sortBy는 RECENT|SALARY_HIGH|MATCH_SCORE만
   const { data: jobPostsData, isLoading, isError } = useQuery({
-    queryKey: ["jobPosts", { searchKeyword, sortBy, isLoggedIn }], // 로그인 상태 포함
+    queryKey: ["jobPosts", { searchKeyword, sortBy, isLoggedIn, page }], // 페이지 포함
     queryFn: async () => {
       // 로그인 상태에 따라 엔드포인트 분기
       const endpoint = isLoggedIn ? "/job-posts/matched" : "/job-posts";
@@ -97,17 +136,38 @@ function UserMainPage() {
         ...(isLoggedIn && userId && { userId }),
         ...(searchKeyword?.trim() && { keyword: searchKeyword.trim() }),
         sortBy: sortBy === "SALARY_LOW" ? "RECENT" : sortBy,
+        page: page,
+        size: 20,
       };
 
       const response = await api.get(endpoint, { params });
       const body = response.data;
-      return Array.isArray(body) ? body : body?.content ?? [];
+      
+      // 페이지네이션 응답 처리
+      if (body?.content) {
+        return {
+          jobs: body.content,
+          totalPages: body.totalPages || 0,
+          totalElements: body.totalElements || 0,
+          currentPage: body.number || 0,
+        };
+      }
+      
+      // 배열로 직접 오는 경우 (페이지네이션 없음)
+      return {
+        jobs: Array.isArray(body) ? body : [],
+        totalPages: 1,
+        totalElements: Array.isArray(body) ? body.length : 0,
+        currentPage: 0,
+      };
     },
     staleTime: 1000 * 60 * 5, // 5분
   });
 
-  // API 응답은 직접 배열로 옴
-  const jobs = jobPostsData || [];
+  // API 응답 처리
+  const jobs = jobPostsData?.jobs || [];
+  const totalPages = jobPostsData?.totalPages || 0;
+  const totalElements = jobPostsData?.totalElements || 0;
 
   const handleJobClick = (jobData, matchScore) => {
     navigate(`/user/job/${jobData.jobPostId}`, { 
@@ -132,9 +192,12 @@ function UserMainPage() {
         <ContentArea>
           <CountHeader>
             <div>
-              총 <strong>{jobs.length}</strong>건의 채용공고
+              총 <strong>{totalElements}</strong>건의 채용공고
             </div>
-            <SortDropdown value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+            <SortDropdown value={sortBy} onChange={(e) => {
+              setSortBy(e.target.value);
+              setPage(0); // 정렬 변경 시 첫 페이지로
+            }}>
               <option value="RECENT">최신순</option>
               <option value="SALARY_HIGH">급여높은순</option>
               <option value="MATCH_SCORE">매칭점수순</option>
@@ -173,7 +236,42 @@ function UserMainPage() {
               })}
             </Grid>
           )}
-        </ContentArea>
+          {!isLoading && !isError && totalPages > 1 && (
+            <PaginationWrapper>
+              <PageButton
+                onClick={() => setPage(prev => Math.max(0, prev - 1))}
+                disabled={page === 0}
+              >
+                이전
+              </PageButton>
+              
+              {[...Array(totalPages)].map((_, idx) => {
+                // 현재 페이지 주변 5개만 표시
+                if (idx < page - 2 && idx !== 0) return null;
+                if (idx > page + 2 && idx !== totalPages - 1) return null;
+                if (idx === page - 3 || idx === page + 3) {
+                  return <PageInfo key={idx}>...</PageInfo>;
+                }
+                
+                return (
+                  <PageButton
+                    key={idx}
+                    active={page === idx}
+                    onClick={() => setPage(idx)}
+                  >
+                    {idx + 1}
+                  </PageButton>
+                );
+              })}
+              
+              <PageButton
+                onClick={() => setPage(prev => Math.min(totalPages - 1, prev + 1))}
+                disabled={page >= totalPages - 1}
+              >
+                다음
+              </PageButton>
+            </PaginationWrapper>
+          )}        </ContentArea>
       </MainLayout>
     </Container>
   );
