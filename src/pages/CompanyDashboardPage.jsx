@@ -1,262 +1,458 @@
-import styled from '@emotion/styled';
-import { useNavigate } from 'react-router-dom';
+import styled from "@emotion/styled";
+import { useNavigate } from "react-router-dom";
+import {
+  LayoutDashboard,
+  FileText,
+  Settings,
+  LogOut,
+  Users,
+  ChevronRight,
+  Accessibility,
+} from "lucide-react";
 
-const Container = styled.div`
+const LayoutContainer = styled.div`
+  display: flex;
   min-height: 100vh;
-  background-color: #f8f9fa;
+  background-color: #f5f7fb;
 `;
 
+// 1. Sidebar
+const Sidebar = styled.aside`
+  width: 260px;
+  background-color: #243c5a;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+`;
+
+const SidebarHeader = styled.div`
+  height: 80px;
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  font-size: 1.2rem;
+  font-weight: 800;
+  gap: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+`;
+
+const Menu = styled.nav`
+  flex: 1;
+  padding: 20px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+`;
+
+const MenuItem = styled.button`
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background-color: ${(props) =>
+    props.active ? "rgba(255,255,255,0.1)" : "transparent"};
+  color: ${(props) => (props.active ? "white" : "#a0aec0")};
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  text-align: left;
+  transition: all 0.2s;
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+    color: white;
+  }
+`;
+
+const SidebarFooter = styled.div`
+  padding: 24px;
+  font-size: 0.75rem;
+  color: #718096;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+`;
+
+// 2. Main Area
+const MainContent = styled.main`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+`;
+
+// Top Header
 const Header = styled.header`
-  background-color: white;
-  padding: 20px 40px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  height: 80px;
+  background: white;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 40px;
+`;
+
+const WelcomeMsg = styled.div`
+  h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #2d3748;
+    margin-bottom: 4px;
+  }
+  p {
+    font-size: 0.9rem;
+    color: #718096;
+  }
+`;
+
+const HeaderActions = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 16px;
+`;
+
+const IconButton = styled.button`
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #718096;
+  &:hover {
+    background: #f7fafc;
+    color: #4a5568;
+  }
+`;
+
+const LogoutBtn = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: #4a5568;
+  font-weight: 600;
+  &:hover {
+    background: #f7fafc;
+  }
+`;
+
+// Dashboard Content
+const DashboardBody = styled.div`
+  padding: 40px;
+  overflow-y: auto;
+`;
+
+// Stats Card (Total Applicants)
+const MainStatCard = styled.div`
+  background: white;
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+  margin-bottom: 30px;
   display: flex;
   justify-content: space-between;
   align-items: center;
 `;
 
-const Logo = styled.h1`
-  margin: 0;
-  color: #667eea;
-  font-size: 24px;
-`;
-
-const HeaderButtons = styled.div`
-  display: flex;
-  gap: 12px;
-`;
-
-const Button = styled.button`
-  padding: 10px 20px;
-  background-color: ${props => props.primary ? '#667eea' : 'transparent'};
-  color: ${props => props.primary ? 'white' : '#667eea'};
-  border: ${props => props.primary ? 'none' : '2px solid #667eea'};
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
-  transition: all 0.2s;
-
-  &:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+const StatInfo = styled.div`
+  h3 {
+    font-size: 1rem;
+    color: #718096;
+    margin-bottom: 12px;
+    font-weight: 600;
   }
-`;
-
-const Content = styled.main`
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 40px;
-`;
-
-const PageTitle = styled.h1`
-  margin: 0 0 32px 0;
-  color: #333;
-  font-size: 32px;
-`;
-
-const StatsGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 24px;
-  margin-bottom: 40px;
-`;
-
-const StatCard = styled.div`
-  background: ${props => props.gradient || 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'};
-  padding: 32px;
-  border-radius: 16px;
-  color: white;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s;
-
-  &:hover {
-    transform: translateY(-4px);
+  .number {
+    font-size: 3rem;
+    font-weight: 800;
+    color: #2d3748;
+    line-height: 1;
+    margin-bottom: 12px;
   }
+  .sub {
+    font-size: 0.95rem;
+    color: #00a84e;
+    font-weight: 600;
+  } /* Green text */
 `;
 
-const StatValue = styled.div`
-  font-size: 48px;
-  font-weight: 700;
-  margin-bottom: 8px;
-`;
-
-const StatLabel = styled.div`
-  font-size: 16px;
-  opacity: 0.9;
-`;
-
-const ChartSection = styled.div`
-  background-color: white;
-  padding: 40px;
+const IconBox = styled.div`
+  width: 64px;
+  height: 64px;
+  background: #f0f4ff;
   border-radius: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  margin-bottom: 24px;
-`;
-
-const SectionTitle = styled.h2`
-  margin: 0 0 24px 0;
-  color: #333;
-  font-size: 24px;
-`;
-
-const ChartPlaceholder = styled.div`
-  height: 300px;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #666;
-  font-size: 18px;
-  font-weight: 600;
+  color: #0b4da2;
 `;
 
-const TableSection = styled.div`
-  background-color: white;
-  padding: 40px;
+// Recent Applicants Section
+const SectionHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+
+  h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #2d3748;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  button {
+    color: #4a5568;
+    font-size: 0.9rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+  }
+`;
+
+const ApplicantList = styled.div`
+  background: white;
   border-radius: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+  overflow: hidden;
 `;
 
-const Table = styled.table`
-  width: 100%;
-  border-collapse: collapse;
+const ListHeader = styled.div`
+  display: grid;
+  grid-template-columns: 2fr 2fr 1.5fr 1.5fr 1.5fr;
+  padding: 20px 32px;
+  border-bottom: 1px solid #edf2f7;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #718096;
 `;
 
-const Th = styled.th`
-  text-align: left;
-  padding: 16px;
-  background-color: #f8f9fa;
-  color: #333;
+const ListItem = styled.div`
+  display: grid;
+  grid-template-columns: 2fr 2fr 1.5fr 1.5fr 1.5fr;
+  padding: 20px 32px;
+  border-bottom: 1px solid #edf2f7;
+  align-items: center;
+  transition: background 0.2s;
+
+  &:last-child {
+    border-bottom: none;
+  }
+  &:hover {
+    background: #f8fafc;
+    cursor: pointer;
+  }
+`;
+
+const UserProfile = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+`;
+
+const Avatar = styled.div`
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: ${(props) => props.bg || "#4299e1"};
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  font-weight: 700;
+`;
+
+const UserName = styled.span`
+  font-size: 0.95rem;
   font-weight: 600;
-  border-bottom: 2px solid #e0e0e0;
+  color: #2d3748;
 `;
 
-const Td = styled.td`
-  padding: 16px;
-  border-bottom: 1px solid #f0f0f0;
-  color: #555;
+const TextCell = styled.div`
+  font-size: 0.9rem;
+  color: #4a5568;
+  font-weight: 500;
 `;
 
-const Badge = styled.span`
-  padding: 6px 12px;
-  background-color: ${props => {
-    if (props.status === 'new') return '#e3f2fd';
-    if (props.status === 'reviewing') return '#fff3e0';
-    return '#e8f5e9';
-  }};
-  color: ${props => {
-    if (props.status === 'new') return '#1976d2';
-    if (props.status === 'reviewing') return '#f57c00';
-    return '#388e3c';
-  }};
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 600;
+const StatusBadge = styled.span`
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-align: center;
+
+  /* Status Colors */
+  background-color: ${(props) =>
+    props.status === "review"
+      ? "#eef6ff"
+      : props.status === "interview"
+        ? "#e6fffa"
+        : "#fff5f5"};
+  color: ${(props) =>
+    props.status === "review"
+      ? "#3182ce"
+      : props.status === "interview"
+        ? "#2c7a7b"
+        : "#718096"};
+  border: 1px solid
+    ${(props) =>
+      props.status === "review"
+        ? "#bee3f8"
+        : props.status === "interview"
+          ? "#b2f5ea"
+          : "#edf2f7"};
 `;
 
 function CompanyDashboardPage() {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    navigate('/login');
+    navigate("/login");
   };
 
-  const recentApplications = [
-    { id: 1, name: '김민수', position: '웹 프론트엔드 개발자', date: '2024-02-05', status: 'new' },
-    { id: 2, name: '이지은', position: '데이터 분석가', date: '2024-02-04', status: 'reviewing' },
-    { id: 3, name: '박준형', position: '고객 상담원', date: '2024-02-03', status: 'reviewed' },
-    { id: 4, name: '최서연', position: '콘텐츠 기획자', date: '2024-02-02', status: 'new' },
+  const applicants = [
+    {
+      id: 1,
+      name: "이수현",
+      initial: "이",
+      bg: "#4299e1",
+      role: "프론트엔드 개발",
+      type: "지체장애",
+      date: "2026.02.06",
+      status: "review",
+      statusText: "서류 검토중",
+    },
+    {
+      id: 2,
+      name: "김민준",
+      initial: "김",
+      bg: "#00a84e",
+      role: "데이터 분석",
+      type: "청각장애",
+      date: "2026.02.05",
+      status: "interview",
+      statusText: "면접 예정",
+    },
+    {
+      id: 3,
+      name: "박지민",
+      initial: "박",
+      bg: "#a0aec0",
+      role: "서비스직",
+      type: "시각장애",
+      date: "2026.02.04",
+      status: "fail",
+      statusText: "불합격",
+    },
+    {
+      id: 4,
+      name: "최우진",
+      initial: "최",
+      bg: "#805ad5",
+      role: "백엔드 개발",
+      type: "지체장애",
+      date: "2026.02.03",
+      status: "review",
+      statusText: "서류 검토중",
+    },
   ];
 
-  const getStatusText = (status) => {
-    if (status === 'new') return '신규';
-    if (status === 'reviewing') return '검토중';
-    return '검토완료';
-  };
-
   return (
-    <Container>
-      <Header>
-        <Logo>잡케어 기업</Logo>
-        <HeaderButtons>
-          <Button onClick={() => navigate('/company/job-post')}>
-            ✏️ 공고 등록
-          </Button>
-          <Button primary onClick={handleLogout}>
-            로그아웃
-          </Button>
-        </HeaderButtons>
-      </Header>
+    <LayoutContainer>
+      {/* Left Sidebar */}
+      <Sidebar>
+        <SidebarHeader>
+          <Accessibility size={28} />
+          배리어 프리
+        </SidebarHeader>
+        <Menu>
+          <MenuItem active>
+            <LayoutDashboard size={20} /> 대시보드
+          </MenuItem>
+          <MenuItem onClick={() => navigate("/company/job-post")}>
+            <FileText size={20} /> 공고 관리
+          </MenuItem>
+          <MenuItem>
+            <Settings size={20} /> 설정
+          </MenuItem>
+        </Menu>
+        <SidebarFooter>기업 관리자 포털 v1.0</SidebarFooter>
+      </Sidebar>
 
-      <Content>
-        <PageTitle>대시보드</PageTitle>
+      {/* Right Main Content */}
+      <MainContent>
+        <Header>
+          <WelcomeMsg>
+            <h2>안녕하세요, 관리자님</h2>
+            <p>2026년 2월 6일 (금)</p>
+          </WelcomeMsg>
+          <HeaderActions>
+            <LogoutBtn onClick={handleLogout}>
+              <LogOut size={16} /> 로그아웃
+            </LogoutBtn>
+          </HeaderActions>
+        </Header>
 
-        <StatsGrid>
-          <StatCard gradient="linear-gradient(135deg, #667eea 0%, #764ba2 100%)">
-            <StatValue>24</StatValue>
-            <StatLabel>📝 총 지원자 수</StatLabel>
-          </StatCard>
+        <DashboardBody>
+          {/* Total Count Card */}
+          <MainStatCard>
+            <StatInfo>
+              <h3>총 지원자 수</h3>
+              <div className="number">12</div>
+              <div className="sub">오늘 신규 지원 +3명</div>
+            </StatInfo>
+            <IconBox>
+              <Users size={32} />
+            </IconBox>
+          </MainStatCard>
 
-          <StatCard gradient="linear-gradient(135deg, #f093fb 0%, #f5576c 100%)">
-            <StatValue>8</StatValue>
-            <StatLabel>👥 오늘 본 면접</StatLabel>
-          </StatCard>
+          {/* Recent Applicants List */}
+          <SectionHeader>
+            <h3>
+              <FileText size={20} /> 최근 지원자 현황
+            </h3>
+            <button>
+              전체보기 <ChevronRight size={16} />
+            </button>
+          </SectionHeader>
 
-          <StatCard gradient="linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)">
-            <StatValue>3.2%</StatValue>
-            <StatLabel>📊 장애인 고용률</StatLabel>
-          </StatCard>
+          <ApplicantList>
+            <ListHeader>
+              <div>이름</div>
+              <div>지원 직무</div>
+              <div>장애 유형</div>
+              <div>지원 날짜</div>
+              <div style={{ textAlign: "center" }}>상태</div>
+            </ListHeader>
 
-          <StatCard gradient="linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)">
-            <StatValue>₩240만</StatValue>
-            <StatLabel>💰 예상 지원금</StatLabel>
-          </StatCard>
-        </StatsGrid>
-
-        <ChartSection>
-          <SectionTitle>📈 월별 장애인 고용 현황</SectionTitle>
-          <ChartPlaceholder>
-            📊 차트 영역 (Chart.js 또는 Recharts 연동 가능)
-          </ChartPlaceholder>
-        </ChartSection>
-
-        <TableSection>
-          <SectionTitle>최근 지원자 목록</SectionTitle>
-          <Table>
-            <thead>
-              <tr>
-                <Th>지원자명</Th>
-                <Th>지원 직무</Th>
-                <Th>지원일</Th>
-                <Th>상태</Th>
-                <Th>액션</Th>
-              </tr>
-            </thead>
-            <tbody>
-              {recentApplications.map(app => (
-                <tr key={app.id}>
-                  <Td>{app.name}</Td>
-                  <Td>{app.position}</Td>
-                  <Td>{app.date}</Td>
-                  <Td>
-                    <Badge status={app.status}>
-                      {getStatusText(app.status)}
-                    </Badge>
-                  </Td>
-                  <Td>
-                    <Button style={{ padding: '6px 12px', fontSize: '13px' }}>
-                      상세보기
-                    </Button>
-                  </Td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
-        </TableSection>
-      </Content>
-    </Container>
+            {applicants.map((item) => (
+              <ListItem key={item.id}>
+                <UserProfile>
+                  <Avatar bg={item.bg}>{item.initial}</Avatar>
+                  <UserName>{item.name}</UserName>
+                </UserProfile>
+                <TextCell>{item.role}</TextCell>
+                <TextCell>{item.type}</TextCell>
+                <TextCell>{item.date}</TextCell>
+                <div style={{ textAlign: "center" }}>
+                  <StatusBadge status={item.status}>
+                    {item.statusText}
+                  </StatusBadge>
+                </div>
+              </ListItem>
+            ))}
+          </ApplicantList>
+        </DashboardBody>
+      </MainContent>
+    </LayoutContainer>
   );
 }
 
