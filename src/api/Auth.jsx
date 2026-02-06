@@ -43,6 +43,11 @@ export const deleteResume = (resumeId) => {
   return api.delete(`/resumes/${resumeId}`);
 };
 
+/** 대표 이력서로 설정 — PATCH /api/resumes/{resumeId}/representative (기존 대표는 자동 해제) */
+export const setRepresentative = (resumeId) => {
+  return api.patch(`/resumes/${resumeId}/representative`);
+};
+
 /** 음성 이력서 업로드 — POST /api/resumes/voice (multipart "audio", 최대 10MB) */
 export const uploadVoiceResume = (audioBlob) => {
   const formData = new FormData();
